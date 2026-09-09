@@ -165,10 +165,19 @@ function systemTable(bundle) {
 // ---------------------------------------------------------------- results
 
 function results() {
+  const figures = [
+    ["fig1_accuracy.png", "Method-selection accuracy with Wilson 95% intervals."],
+    ["fig4_abstention.png", "Abstention recall on design-hazard cases — the sharpest separation."],
+    ["fig2_risk_coverage.png", "Risk–coverage: accuracy among answered cases, against how many were answered."],
+    ["fig3_failures.png", "Failure counts by stage of the error taxonomy."],
+  ];
   return `
   <h2>Results</h2>
   <p class="lede">Three kinds of evidence, kept separate. Conflating them would be
     the easiest way to make this project look stronger than it is.</p>
+  ${figures.map(([f, cap]) => `<figure class="site-figure">
+      <img src="figures/${f}" alt="${esc(cap)}" loading="lazy">
+      <figcaption>${esc(cap)}</figcaption></figure>`).join("")}
   ${Object.entries(state.runs).map(([key, b]) => `
     <h3>${esc(b.label)}</h3>
     <p class="meta"><span class="chip">${b.n_runs} runs</span>

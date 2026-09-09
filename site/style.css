@@ -233,3 +233,12 @@ footer { border-top: 1px solid var(--rule); margin-top: 4rem;
 footer p { font-size: 0.82rem; color: var(--ink-3); max-width: 70ch; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.site-figure { margin: 1.5rem 0; }
+.site-figure img {
+  width: 100%; max-width: 46rem; height: auto; display: block;
+  border: 1px solid var(--rule); background: #fcfcfb;
+}
+.site-figure figcaption {
+  font-size: 0.82rem; color: var(--ink-3); margin-top: 0.5rem; max-width: 46rem;
+}

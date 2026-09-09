@@ -25,7 +25,8 @@ help:
 	@echo "  make pilot      two-tier headroom check (run BEFORE freezing prompts)"
 	@echo "  make analyze    rebuild every result table from raw logs"
 	@echo "  make report     regenerate the capstone results document"
-	@echo "  make capstone   regenerate the full capstone report"
+	@echo "  make figures    regenerate the report figures"
+	@echo "  make capstone   regenerate the full capstone report (incl. figures)"
 	@echo "  make audit      independent label audit (no API key needed)"
 	@echo "  make blind      prepare a blinded interpretation-scoring packet"
 	@echo "  make demo       launch the Streamlit demo (live analysis, local)"
@@ -81,7 +82,10 @@ analyze:
 report:
 	$(PY) scripts/write_report.py --name heldout_rulebased_expert
 
-capstone:
+figures:
+	$(PY) scripts/make_figures.py
+
+capstone: figures
 	$(PY) scripts/write_capstone.py
 
 audit:

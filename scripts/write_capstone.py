@@ -93,6 +93,15 @@ def main() -> int:
     raw = load("dev_claude-opus-5_high")
     n_lost = len(raw) - len(live_hi) if raw is not None else 0
 
+    figs = ROOT / "reports" / "figures"
+    has_figs = (figs / "fig1_accuracy.png").exists()
+
+    def fig(name: str, caption: str) -> str:
+        if not has_figs:
+            return ""
+        return (f"\n![{caption}](figures/{name})\n\n"
+                f"*{caption}*\n")
+
     doc = f"""# AI Statistician — capstone report
 
 *Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d')} from `results/*.jsonl`.
@@ -205,6 +214,13 @@ repetitions rather than claiming to eliminate it.
 | System | n | Accuracy | 95% CI | Abstention recall | Unsafe rate | Tool calls |
 |---|---|---|---|---|---|---|
 {sys_rows(live_hi) if len(live_hi) else '| _no live data_ | | | | | | |'}
+{fig("fig1_accuracy.png",
+     "Figure 1 — Method-selection accuracy with Wilson 95% intervals. The live "
+     "panel is preliminary; the offline panel is the calibration run.")}
+{fig("fig4_abstention.png",
+     "Figure 2 — Abstention recall on design-hazard cases. The sharpest "
+     "separation between the systems, and the failure the project exists to "
+     "prevent.")}
 """
 
     if bc:
@@ -252,6 +268,10 @@ experiment**:
 - **Only System C at `medium` effort is missing entirely** — the account ran out
   of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
 
+{fig("fig3_failures.png",
+     "Figure 3 — Failure counts by stage of the error taxonomy. Design "
+     "validation failures are cases where a method was fitted to data whose "
+     "independence assumption fails.")}
 ### 5.3 Offline calibration
 
 A deterministic policy client implements the same interface as the live path,
@@ -277,6 +297,11 @@ barely above the unstructured baseline.
 This matters for interpreting §5.1: the protocol's advantage is not an artefact
 of having more structure, because more structure with worse rules performs
 worse.
+
+{fig("fig2_risk_coverage.png",
+     "Figure 4 — Risk-coverage. Coverage is the share of cases a system chose "
+     "to answer; selective accuracy is accuracy among those. A system that "
+     "abstains only when it should sits top-right.")}
 
 ### 5.4 Held-out evaluation
 

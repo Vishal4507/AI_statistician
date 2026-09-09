@@ -60,6 +60,16 @@ def main() -> int:
     payload = json.dumps({"meta": meta, "cases": cases, "runs": runs},
                          separators=(",", ":"))
 
+    # Figures are separate files in the site build; in one file they must be
+    # data URIs or every <img> 404s.
+    import base64
+    figs = SITE / "figures"
+    for png in sorted(figs.glob("*.png")) if figs.exists() else []:
+        uri = ("data:image/png;base64,"
+               + base64.b64encode(png.read_bytes()).decode())
+        js = js.replace(f'"{png.name}"', f'"{uri}"')
+    js = js.replace('src="figures/${f}"', 'src="${f}"')
+
     head = (SITE / "index.html").read_text()
     body = head.split("<body>", 1)[1].split("</body>", 1)[0]
     body = body.replace('<link rel="stylesheet" href="style.css">', "")
