@@ -1,0 +1,25 @@
+{
+  "n_raters": 2,
+  "raters": {
+    "A": {
+      "n_double_scored": 8,
+      "self_agreement": 0.25,
+      "self_kappa": -0.23076923076923078,
+      "reading": "worse than chance"
+    },
+    "B": {
+      "n_double_scored": 8,
+      "self_agreement": 0.5,
+      "self_kappa": 0.23809523809523808,
+      "reading": "fair"
+    }
+  },
+  "inter_rater": {
+    "n": 41,
+    "agreement": 0.2926829268292683,
+    "kappa": -0.04389815627743639,
+    "reading": "worse than chance",
+    "opposite_ends": 13
+  },
+  "usable": false
+}

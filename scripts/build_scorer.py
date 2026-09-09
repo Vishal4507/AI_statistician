@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 warnings.filterwarnings("ignore")
 
-from aistat.evaluation.blinded import RUBRIC, SECTIONS, blind
+from aistat.evaluation.blinded import (JUDGED_SECTIONS, RUBRIC, SCOPE,
+                                       Session, blind)
 
 BLIND = ROOT / "reports" / "blinded"
 OUT = BLIND / "score.html"
@@ -31,6 +32,11 @@ OUT = BLIND / "score.html"
 TITLES = {"problem_statement": "Problem statement", "data_audit": "Data audit",
           "method_decision": "Method decision", "results": "Results",
           "interpretation": "Interpretation", "limitations": "Limitations"}
+
+
+def load_calibration() -> list[dict]:
+    p = BLIND / "calibration.json"
+    return json.loads(p.read_text()) if p.exists() else []
 
 
 def load_items() -> list[dict]:
@@ -64,10 +70,18 @@ def main() -> int:
         print(exc, file=sys.stderr)
         return 2
 
+    cal = load_calibration()
+    for c in cal:
+        c["sections"] = {k: blind(v) for k, v in c["sections"].items()
+                         if k in JUDGED_SECTIONS}
     payload = json.dumps(items, separators=(",", ":"))
+    cal_payload = json.dumps(cal, separators=(",", ":"))
     rubric_rows = "".join(
         f"<tr><td class='k'>{k}</td><td>{html.escape(v)}</td></tr>"
         for k, v in RUBRIC.items())
+    scope_html = html.escape(SCOPE).replace("\n\n", "</p><p>").replace("\n", " ")
+    n_cal = len(cal)
+    titles = json.dumps(TITLES)
 
     doc = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -85,19 +99,24 @@ def main() -> int:
   --rule:#282e37; --accent:#7fadd8; --ok:#6fb79c; --risk:#d98d74;}}}}
 *{{box-sizing:border-box}}
 body{{margin:0;background:var(--paper);color:var(--ink);
-  font:15px/1.62 ui-sans-serif,system-ui,-apple-system,sans-serif;}}
+  font:15px/1.62 ui-sans-serif,system-ui,-apple-system,sans-serif}}
 .bar{{position:sticky;top:0;z-index:5;background:var(--surface);
   border-bottom:1px solid var(--rule);padding:.75rem 1.5rem;
   display:flex;gap:1.25rem;align-items:center;flex-wrap:wrap}}
 .bar b{{font-variant-numeric:tabular-nums}}
-.prog{{flex:1;min-width:8rem;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden}}
+.prog{{flex:1;min-width:8rem;height:6px;background:var(--surface-2);
+  border-radius:3px;overflow:hidden}}
 .prog i{{display:block;height:100%;background:var(--ok);width:0}}
 main{{max-width:52rem;margin:0 auto;padding:1.75rem 1.5rem 8rem}}
+h1{{font-size:1.5rem;margin:.4rem 0 1rem}}
 .rid{{font-family:ui-monospace,monospace;font-size:.8rem;color:var(--ink-3);
   letter-spacing:.08em}}
 h2{{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;
   color:var(--ink-3);margin:1.5rem 0 .3rem;font-weight:500}}
 p.sec{{margin:0;max-width:70ch}}
+.scope{{border:1px solid var(--rule);background:var(--surface);
+  border-left:3px solid var(--accent);padding:1rem 1.2rem;margin:1rem 0}}
+.scope p{{margin:0 0 .8rem;max-width:70ch}} .scope p:last-child{{margin:0}}
 .judge{{border:1px solid var(--rule);background:var(--surface);
   border-left:3px solid var(--accent);padding:1rem 1.2rem;margin:1.5rem 0 0}}
 .judge h3{{margin:0 0 .5rem;font-size:.95rem}}
@@ -116,29 +135,46 @@ button:focus-visible{{outline:2px solid var(--accent);outline-offset:2px}}
 textarea{{width:100%;font:inherit;font-size:.9rem;padding:.5rem;
   border:1px solid var(--rule);border-radius:4px;background:var(--paper);
   color:var(--ink);margin-top:.75rem;min-height:3rem}}
+.feedback{{border:1px solid var(--rule);padding:1rem 1.2rem;margin-top:1rem;
+  background:var(--surface);border-left:3px solid var(--ok)}}
+.feedback.miss{{border-left-color:var(--risk)}}
+.feedback h4{{margin:0 0 .5rem;font-size:.95rem}}
+.feedback p{{margin:0;max-width:70ch;color:var(--ink-2)}}
 .done{{background:var(--surface);border:1px solid var(--rule);
   border-left:3px solid var(--ok);padding:1.25rem 1.4rem;margin-top:1.5rem}}
-kbd{{font-family:ui-monospace,monospace;font-size:.78rem;background:var(--surface-2);
-  border:1px solid var(--rule);border-radius:3px;padding:.05em .35em}}
-.hint{{font-size:.82rem;color:var(--ink-3);margin-top:.6rem}}
+kbd{{font-family:ui-monospace,monospace;font-size:.78rem;
+  background:var(--surface-2);border:1px solid var(--rule);
+  border-radius:3px;padding:.05em .35em}}
+.hint{{font-size:.82rem;color:var(--ink-3);margin-top:.6rem;max-width:70ch}}
 </style></head><body>
 
 <div class="bar">
-  <b id="pos">1 / {len(items)}</b>
+  <b id="pos">Before you start</b>
   <div class="prog"><i id="prog"></i></div>
   <span class="rid" id="rid"></span>
   <button id="export">Export CSV</button>
 </div>
 
 <main>
-  <div id="report"></div>
+  <div id="intro">
+    <h1>Before you start</h1>
+    <div class="scope"><p>{scope_html}</p></div>
+    <table class="rub">{rubric_rows}</table>
+    <p class="hint">You will score {n_cal} worked examples first and see the
+      intended answer after each. It takes about five minutes, and it is what
+      makes two people's scores comparable — the first round ran without it and
+      returned no usable agreement.</p>
+    <div class="btns"><button id="begin">Start calibration</button></div>
+  </div>
 
-  <div class="judge">
-    <h3>Are the interpretation and limitations supported by the result reported above?</h3>
+  <div id="report" hidden></div>
+
+  <div class="judge" id="judge" hidden>
+    <h3 id="ask">Does the Interpretation follow from the Results above?</h3>
     <table class="rub">{rubric_rows}</table>
     <div class="btns">
-      <button data-s="0">0 · Incorrect</button>
-      <button data-s="1">1 · Partly correct</button>
+      <button data-s="0">0 · Not supported</button>
+      <button data-s="1">1 · Partly supported</button>
       <button data-s="2">2 · Fully supported</button>
     </div>
     <textarea id="note" placeholder="Optional note — why, in a few words"></textarea>
@@ -147,8 +183,10 @@ kbd{{font-family:ui-monospace,monospace;font-size:.78rem;background:var(--surfac
       <button id="next">Skip →</button>
     </div>
     <p class="hint">Keys: <kbd>0</kbd> <kbd>1</kbd> <kbd>2</kbd> to score,
-      <kbd>←</kbd> <kbd>→</kbd> to move. Progress is saved in this browser, so
-      you can close the tab and come back.</p>
+      <kbd>←</kbd> <kbd>→</kbd> to move. Progress saves in this browser, so you
+      can close the tab and come back. Take a break every fifteen or so —
+      this measures consistency, not speed.</p>
+    <div class="feedback" id="feedback" hidden></div>
   </div>
 
   <div class="done" id="done" hidden></div>
@@ -156,9 +194,11 @@ kbd{{font-family:ui-monospace,monospace;font-size:.78rem;background:var(--surfac
 
 <script>
 const ITEMS = {payload};
-const TITLES = {json.dumps(TITLES)};
+const CAL = {cal_payload};
+const TITLES = {titles};
 const KEY = "aistat-blind-scores";
-let i = 0;
+let phase = "intro";
+let ci = 0, i = 0;
 let scores = {{}};
 try {{ scores = JSON.parse(localStorage.getItem(KEY) || "{{}}"); }} catch (e) {{}}
 
@@ -166,20 +206,63 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c =>
   ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}}[c]));
 
-function save() {{
+const save = () => {{
   try {{ localStorage.setItem(KEY, JSON.stringify(scores)); }} catch (e) {{}}
+}};
+
+function showSections(sections) {{
+  $("#report").innerHTML = Object.entries(TITLES)
+    .filter(([k]) => sections[k])
+    .map(([k, t]) => `<h2>${{t}}</h2><p class="sec">${{esc(sections[k])}}</p>`)
+    .join("");
+}}
+
+function renderCalibration() {{
+  const c = CAL[ci];
+  $("#intro").hidden = true;
+  $("#report").hidden = false;
+  $("#judge").hidden = false;
+  $("#note").hidden = true;
+  $("#pos").textContent = `calibration ${{ci + 1}} / ${{CAL.length}}`;
+  $("#rid").textContent = "worked example";
+  $("#prog").style.width = (100 * ci / CAL.length) + "%";
+  $("#ask").textContent = "Score this, then check your answer.";
+  showSections(c.sections);
+  document.querySelectorAll("[data-s]").forEach(b => b.classList.remove("sel"));
+  $("#feedback").hidden = true;
+  window.scrollTo({{ top: 0 }});
+}}
+
+function judgeCalibration(v) {{
+  const c = CAL[ci];
+  const hit = v === c.score;
+  const fb = $("#feedback");
+  fb.hidden = false;
+  fb.className = "feedback" + (hit ? "" : " miss");
+  const last = ci >= CAL.length - 1;
+  fb.innerHTML = `<h4>${{hit ? "Agreed" : "Not the intended score"}} — this is a
+    ${{c.score}}</h4><p>${{esc(c.why)}}</p>
+    <div class="btns" style="margin-top:.9rem"><button id="calnext">${{
+      last ? "Begin scoring" : "Next example"}}</button></div>`;
+  $("#calnext").addEventListener("click", () => {{
+    if (!last) {{ ci++; renderCalibration(); }}
+    else {{ phase = "scoring"; $("#note").hidden = false; render(); }}
+  }});
 }}
 
 function render() {{
+  if (phase !== "scoring") return;
   const it = ITEMS[i];
+  $("#intro").hidden = true;
+  $("#report").hidden = false;
+  $("#judge").hidden = false;
   $("#pos").textContent = `${{i + 1}} / ${{ITEMS.length}}`;
   $("#rid").textContent = it.id;
   const n = Object.keys(scores).length;
   $("#prog").style.width = (100 * n / ITEMS.length) + "%";
-  $("#report").innerHTML = Object.entries(TITLES)
-    .filter(([k]) => it.sections[k])
-    .map(([k, t]) => `<h2>${{t}}</h2><p class="sec">${{esc(it.sections[k])}}</p>`)
-    .join("");
+  $("#ask").textContent = "Does the Interpretation follow from the Results above?";
+  $("#feedback").hidden = true;
+  showSections(it.sections);
   const rec = scores[it.id] || {{}};
   document.querySelectorAll("[data-s]").forEach(b =>
     b.classList.toggle("sel", String(rec.score) === b.dataset.s));
@@ -194,29 +277,33 @@ function render() {{
 }}
 
 function score(v) {{
-  const it = ITEMS[i];
-  scores[it.id] = {{ score: v, notes: $("#note").value.trim() }};
+  if (phase === "calibration") {{ judgeCalibration(v); return; }}
+  if (phase !== "scoring") return;
+  scores[ITEMS[i].id] = {{ score: v, notes: $("#note").value.trim() }};
   save();
-  if (i < ITEMS.length - 1) {{ i++; }}
+  if (i < ITEMS.length - 1) i++;
   render();
 }}
 
+$("#begin").addEventListener("click", () => {{
+  if (CAL.length) {{ phase = "calibration"; renderCalibration(); }}
+  else {{ phase = "scoring"; render(); }}
+}});
 document.querySelectorAll("[data-s]").forEach(b =>
   b.addEventListener("click", () => score(Number(b.dataset.s))));
 $("#prev").addEventListener("click", () => {{ if (i > 0) i--; render(); }});
-$("#next").addEventListener("click", () => {{ if (i < ITEMS.length - 1) i++; render(); }});
+$("#next").addEventListener("click", () => {{
+  if (i < ITEMS.length - 1) i++; render(); }});
 $("#note").addEventListener("input", () => {{
-  const rec = scores[ITEMS[i].id];
+  const rec = scores[ITEMS[i]?.id];
   if (rec) {{ rec.notes = $("#note").value.trim(); save(); }}
 }});
-
 document.addEventListener("keydown", e => {{
-  if (e.target.tagName === "TEXTAREA") return;
+  if (e.target.tagName === "TEXTAREA" || phase === "intro") return;
   if (["0","1","2"].includes(e.key)) score(Number(e.key));
   else if (e.key === "ArrowLeft" && i > 0) {{ i--; render(); }}
   else if (e.key === "ArrowRight" && i < ITEMS.length - 1) {{ i++; render(); }}
 }});
-
 $("#export").addEventListener("click", () => {{
   const rows = ["item_id,score,notes"];
   for (const it of ITEMS) {{
@@ -231,16 +318,14 @@ $("#export").addEventListener("click", () => {{
   a.click();
   URL.revokeObjectURL(a.href);
 }});
-
-render();
 </script>
 </body></html>
 """
     OUT.write_text(doc, encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}  ({OUT.stat().st_size/1024:,.0f} KB, "
-          f"{len(items)} reports)")
+          f"{len(cal)} calibration + {len(items)} scored)")
     print(f"\n  open it:  open {OUT.relative_to(ROOT)}")
-    print("  score with 0 / 1 / 2, export the CSV over "
+    print("  calibrate, score, export the CSV over "
           "reports/blinded/scores_blank.csv,\n  then: make blind-ingest")
     return 0
 

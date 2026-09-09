@@ -29,6 +29,7 @@ help:
 	@echo "  make capstone   regenerate the full capstone report (incl. figures)"
 	@echo "  make audit      independent label audit (no API key needed)"
 	@echo "  make blind      prepare a blinded scoring packet + one-page scorer"
+	@echo "  make reliability  inter-rater agreement on a completed scoring round"
 	@echo "  make demo       launch the Streamlit demo (live analysis, local)"
 	@echo "  make site       export the static explorer for Netlify"
 	@echo "  make artifact   bundle the explorer into one self-contained page"
@@ -97,6 +98,9 @@ RUN ?= heldout_rulebased_expert
 blind:
 	$(PY) scripts/score_blinded.py --prepare $(RUN)
 	$(PY) scripts/build_scorer.py
+
+reliability:
+	$(PY) scripts/analyse_reliability.py
 
 blind-ingest:
 	$(PY) scripts/score_blinded.py --ingest reports/blinded/scores_blank.csv

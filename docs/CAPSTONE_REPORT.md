@@ -211,6 +211,66 @@ executed at any point without invalidating anything above.
 Everything needed to run it exists and is tested: `make eval-live` validates the
 live path first and refuses to start work the budget cannot finish.
 
+### 5.5 Interpretation scoring — a reliability failure
+
+Blueprint §8.3 requires a 0–2 interpretation rubric applied blind to
+system identity, with at least 20% double-scored and agreement
+reported. A first round ran with two independent raters over 41 reports, a fifth of them silently presented twice.
+
+**The round failed its reliability check.**
+
+| Comparison | n | Exact agreement | Cohen's κ | Reading |
+|---|---|---|---|---|
+| Rater A — same report, twice | 8 | 25% | -0.231 | worse than chance |
+| Rater B — same report, twice | 8 | 50% | +0.238 | fair |
+| Between the two raters | 41 | 29% | -0.044 | worse than chance |
+
+Chance agreement on a three-point scale is about 33%. One rater scored *worse
+than chance against their own earlier judgement of the same text*, and 13
+reports (32%) received a 0 from one rater and a 2 from the other.
+**The scores are not reported as a metric**: a mean computed from them would
+be a mean of noise.
+
+#### The diagnosis is an instrument defect, not rater carelessness
+
+Neither rater separated the systems — both scored the structured agent
+*lowest*, the system with the highest selection accuracy and perfect
+abstention recall. That pattern pointed at the rubric rather than the raters.
+
+The rubric never said whether to judge **the choice of method** or **only the
+interpretation given the result**. One report ran a Spearman correlation on a
+count outcome — the wrong method — yet interpreted its own output faithfully.
+Under one reading that is a 0; under the other a 2. Both raters applied the
+rubric they were given; the rubric admitted two readings.
+
+A second defect compounded it: reports were presented in full, six sections
+each, when the rubric concerns three.
+
+#### Remedies applied
+
+1. **The rubric states its scope explicitly** — judge whether the interpretation
+   follows from the result; do not judge method choice, which selection
+   accuracy already measures. Scoring it twice was the main route to
+   inconsistency.
+2. **Calibration anchors.** Three worked examples scored first, with the
+   intended answer and reasoning revealed after each — including the
+   wrong-method-but-faithful-interpretation case that separated the raters.
+   Anchors are author-adjudicated and excluded from the scored set.
+3. **Only the judged sections are presented**, roughly halving the reading.
+4. **Sittings**, with the instrument stating that it measures consistency,
+   not speed.
+
+#### Status
+
+The metric is **not reported**. The instrument is rebuilt; a second round runs
+with `make blind`, and `scripts/analyse_reliability.py` recomputes agreement
+and states plainly whether a round is usable.
+
+Reporting an unusable round with its diagnosis is the honest treatment of
+§8.3, and more useful than a clean number would have been: the double-scoring
+caught a defect a single-rater design would have hidden inside a plausible
+mean.
+
 ---
 
 ## 6. Error analysis
@@ -228,11 +288,11 @@ lost runs were harness defects, described in §5.2 and since fixed.
 
 Beyond §5.2:
 
-- **No blinded human interpretation scoring.** Blueprint §8.3 requires a 0–2
-  rubric scored blind to system identity with ≥20% double-scored. The
-  programmatic proxy in `scorers.py` covers only the mechanically checkable half
-  (causal language, absolute claims, constraint adherence).
-  `human_interpretation_score` is `None` in every run.
+- **No usable interpretation score.** A blinded round was run and failed its
+  reliability check (§5.5). `human_interpretation_score` is `None` in every run,
+  and the programmatic proxy in `scorers.py` covers only the mechanically
+  checkable half (causal language, absolute claims, constraint adherence). The
+  instrument has been rebuilt; a second round is outstanding.
 - **No independent second reviewer.** 48 of 64 labels are construction-derived
   and therefore not opinions; the 16 public labels were validated against their
   realised data, which caught one mislabel. This is weaker than the double review

@@ -23,13 +23,38 @@ ROOT = Path(__file__).resolve().parents[3]
 RESULTS = ROOT / "results"
 
 RUBRIC = {
-    0: "Incorrect -- the interpretation misstates the estimand, the direction, "
-       "or the strength of evidence.",
-    1: "Partly correct -- broadly right but overreaches, omits a material "
-       "limitation, or states significance without magnitude.",
+    0: "Not supported -- a claim contradicts the reported result, names a "
+       "statistic the Results section does not contain, states a direction the "
+       "numbers do not show, or asserts cause on non-randomised data.",
+    1: "Partly supported -- broadly follows the result, but overreaches on "
+       "strength, omits a limitation the design plainly implies, or reports "
+       "significance without magnitude.",
     2: "Fully supported -- every substantive claim follows from the reported "
-       "result and the stated design.",
+       "result and the stated design, and the material limitations are named.",
 }
+
+SCOPE = """\
+Judge ONE thing: does the Interpretation follow from the Results shown directly
+above it?
+
+Do NOT judge whether the right method was chosen. A report may run entirely the
+wrong test and still interpret its own output faithfully -- that scores 2 here.
+Method choice is measured separately by selection accuracy; scoring it twice
+would double-count it and is the main way this rubric gets applied
+inconsistently.
+
+Do NOT reward confidence or penalise length. A long report that names its
+limitations is doing the job; a short, fluent one that glosses over them is not.
+
+Ask, in order:
+  1. Does every number or claim in the Interpretation appear in, or follow from,
+     the Results?
+  2. Is the direction and the strength right -- no "strong" for a weak effect,
+     no "no difference" for a non-significant test?
+  3. Is causal language absent, unless the design card says randomised?
+  4. Are the limitations the design implies actually named?
+
+Any "no" to 1 or 3 is a 0. A "no" to 2 or 4 alone is a 1. All four yes is a 2."""
 
 # Phrases that would reveal which system produced a report.  Ordered longest
 # first so a compound tell ("System C, the structured agent") is replaced once
@@ -69,6 +94,14 @@ _TIDY = [
 SECTIONS = ("problem_statement", "data_audit", "method_decision", "results",
             "interpretation", "limitations")
 
+JUDGED_SECTIONS = ("results", "interpretation", "limitations")
+"""What the rater actually reads.
+
+The rubric concerns whether the interpretation follows from the result, so the
+problem statement, data audit and method decision are not evidence for it --
+they are three extra screens of dense text per report, and reading six sections
+when three are relevant is how attention runs out around report twenty."""
+
 REPEAT_SUFFIX = "-r2"
 """Marks the second presentation of a double-scored report.
 
@@ -107,13 +140,13 @@ class Item:
     run_id: str
     sections: dict[str, str]
 
-    def presented(self) -> str:
+    def presented(self, sections: tuple[str, ...] = JUDGED_SECTIONS) -> str:
         titles = {"problem_statement": "Problem statement",
                   "data_audit": "Data audit", "method_decision": "Method decision",
                   "results": "Results", "interpretation": "Interpretation",
                   "limitations": "Limitations"}
         out = [f"REPORT {self.item_id}", ""]
-        for key in SECTIONS:
+        for key in sections:
             if self.sections.get(key):
                 out += [f"## {titles[key]}", blind(self.sections[key]), ""]
         return "\n".join(out)
@@ -128,6 +161,8 @@ class Session:
     seed: int = 20260909
     excluded: list[dict] = field(default_factory=list)
     """Reports withheld from scoring, with the reason. Belongs in the write-up."""
+    calibration: list[dict] = field(default_factory=list)
+    """Worked examples shown with their answer before scoring begins."""
 
     @classmethod
     def from_runs(cls, run_name: str, *, double_fraction: float = 0.20,
@@ -151,6 +186,28 @@ class Session:
 
         excluded = [r for r in rows if _unrenderable(r)]
         rows = [r for r in rows if not _unrenderable(r)]
+
+        # Anchors are shown with their answer during calibration, so scoring
+        # them afterwards would grade a rater on text they were handed.
+        from aistat.evaluation.anchors import ANCHORS, anchor_keys
+        keys = anchor_keys()
+        anchor_rows = [r for r in rows
+                       if (r.get("case_id"), r.get("system")) in keys]
+        rows = [r for r in rows
+                if (r.get("case_id"), r.get("system")) not in keys]
+
+        calibration = []
+        for a in ANCHORS:
+            src = next((r for r in anchor_rows
+                        if r.get("case_id") == a.case_id
+                        and r.get("system") == a.system), None)
+            if src:
+                calibration.append({
+                    "item_id": f"CAL{len(calibration) + 1}",
+                    "score": a.score, "why": a.why,
+                    "sections": {k: str(v) for k, v in
+                                 (src.get("rendered") or {}).items()},
+                })
 
         items = []
         for r in rows:
@@ -177,6 +234,7 @@ class Session:
                               run_id=item.run_id, sections=item.sections))
         rng.shuffle(items)
         return cls(items=items, double_fraction=double_fraction, seed=seed,
+                   calibration=calibration,
                    excluded=[{"run_id": r.get("run_id"),
                               "case_id": r.get("case_id"),
                               "system": r.get("system"),
@@ -192,9 +250,8 @@ class Session:
         packet = [
             "# Blinded interpretation scoring",
             "",
-            "Score each report 0-2 on whether its **interpretation and limitations**",
-            "are supported by the result it reports. Do not score writing quality,",
-            "and do not try to work out which system produced it.",
+            "",
+            SCOPE,
             "",
             "| Score | Meaning |",
             "|---|---|",
@@ -230,6 +287,9 @@ class Session:
         if self.excluded:
             (out_dir / "excluded.json").write_text(
                 json.dumps(self.excluded, indent=2))
+        if self.calibration:
+            (out_dir / "calibration.json").write_text(
+                json.dumps(self.calibration, indent=2))
 
         return packet_path, sheet_path, key_path
 

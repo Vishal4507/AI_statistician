@@ -318,6 +318,73 @@ Everything needed to run it exists and is tested: `make eval-live` validates the
 live path first and refuses to start work the budget cannot finish.
 """
 
+
+    # -- 5.5 reliability of the interpretation scoring --------------------
+    rel_path = ROOT / "reports" / "reliability" / "reliability.json"
+    if rel_path.exists():
+        rel = json.loads(rel_path.read_text())
+        rows = "\n".join(
+            f"| Rater {n} — same report, twice | {r['n_double_scored']} | "
+            f"{r['self_agreement']:.0%} | {r['self_kappa']:+.3f} | {r['reading']} |"
+            for n, r in rel["raters"].items())
+        it = rel.get("inter_rater") or {}
+        if it:
+            rows += (f"\n| Between the two raters | {it['n']} | "
+                     f"{it['agreement']:.0%} | {it['kappa']:+.3f} | "
+                     f"{it['reading']} |")
+        n_opp = it.get("opposite_ends", 0)
+        pct_opp = (n_opp / it["n"]) if it.get("n") else 0.0
+        doc += (
+            "\n### 5.5 Interpretation scoring — a reliability failure\n\n"
+            "Blueprint §8.3 requires a 0–2 interpretation rubric applied blind to\n"
+            "system identity, with at least 20% double-scored and agreement\n"
+            f"reported. A first round ran with two independent raters over "
+            f"{it.get('n', 0)} reports, a fifth of them silently presented twice.\n\n"
+            "**The round failed its reliability check.**\n\n"
+            "| Comparison | n | Exact agreement | Cohen's κ | Reading |\n"
+            "|---|---|---|---|---|\n" + rows + "\n\n"
+            "Chance agreement on a three-point scale is about 33%. One rater "
+            "scored *worse\nthan chance against their own earlier judgement of "
+            f"the same text*, and {n_opp}\nreports ({pct_opp:.0%}) received a 0 "
+            "from one rater and a 2 from the other.\n**The scores are not "
+            "reported as a metric**: a mean computed from them would\nbe a mean "
+            "of noise.\n\n"
+            "#### The diagnosis is an instrument defect, not rater carelessness\n\n"
+            "Neither rater separated the systems — both scored the structured "
+            "agent\n*lowest*, the system with the highest selection accuracy and "
+            "perfect\nabstention recall. That pattern pointed at the rubric "
+            "rather than the raters.\n\n"
+            "The rubric never said whether to judge **the choice of method** or "
+            "**only the\ninterpretation given the result**. One report ran a "
+            "Spearman correlation on a\ncount outcome — the wrong method — yet "
+            "interpreted its own output faithfully.\nUnder one reading that is a "
+            "0; under the other a 2. Both raters applied the\nrubric they were "
+            "given; the rubric admitted two readings.\n\n"
+            "A second defect compounded it: reports were presented in full, six "
+            "sections\neach, when the rubric concerns three.\n\n"
+            "#### Remedies applied\n\n"
+            "1. **The rubric states its scope explicitly** — judge whether the "
+            "interpretation\n   follows from the result; do not judge method "
+            "choice, which selection\n   accuracy already measures. Scoring it "
+            "twice was the main route to\n   inconsistency.\n"
+            "2. **Calibration anchors.** Three worked examples scored first, with "
+            "the\n   intended answer and reasoning revealed after each — "
+            "including the\n   wrong-method-but-faithful-interpretation case that "
+            "separated the raters.\n   Anchors are author-adjudicated and excluded "
+            "from the scored set.\n"
+            "3. **Only the judged sections are presented**, roughly halving the "
+            "reading.\n"
+            "4. **Sittings**, with the instrument stating that it measures "
+            "consistency,\n   not speed.\n\n"
+            "#### Status\n\n"
+            "The metric is **not reported**. The instrument is rebuilt; a second "
+            "round runs\nwith `make blind`, and `scripts/analyse_reliability.py` "
+            "recomputes agreement\nand states plainly whether a round is usable.\n\n"
+            "Reporting an unusable round with its diagnosis is the honest "
+            "treatment of\n§8.3, and more useful than a clean number would have "
+            "been: the double-scoring\ncaught a defect a single-rater design "
+            "would have hidden inside a plausible\nmean.\n")
+
     doc += f"""
 ---
 
@@ -336,11 +403,11 @@ lost runs were harness defects, described in §5.2 and since fixed.
 
 Beyond §5.2:
 
-- **No blinded human interpretation scoring.** Blueprint §8.3 requires a 0–2
-  rubric scored blind to system identity with ≥20% double-scored. The
-  programmatic proxy in `scorers.py` covers only the mechanically checkable half
-  (causal language, absolute claims, constraint adherence).
-  `human_interpretation_score` is `None` in every run.
+- **No usable interpretation score.** A blinded round was run and failed its
+  reliability check (§5.5). `human_interpretation_score` is `None` in every run,
+  and the programmatic proxy in `scorers.py` covers only the mechanically
+  checkable half (causal language, absolute claims, constraint adherence). The
+  instrument has been rebuilt; a second round is outstanding.
 - **No independent second reviewer.** 48 of 64 labels are construction-derived
   and therefore not opinions; the 16 public labels were validated against their
   realised data, which caught one mislabel. This is weaker than the double review
