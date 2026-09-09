@@ -1,0 +1,16 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "censoring",
+  "expected_hazards": [
+    "unsupported_outcome"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "21% of durations are right-censored; survival methods are outside the supported library.",
+  "case_id": "syn_abstain_censored_5"
+}

@@ -1,0 +1,22 @@
+{
+  "case_id": "pub_student_4",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "G3": "outcome",
+    "absences": "predictor",
+    "studytime": "predictor",
+    "failures": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "student_performance",
+  "source_doi": "10.24432/C5TG7T",
+  "n_rows": 649,
+  "data_sha256": "172c08739b2c1a96bccf9535ed68229b55f4ded79cec85fa464327fd42742230",
+  "source_url": "https://archive.ics.uci.edu/dataset/320",
+  "source_license": "CC BY 4.0"
+}

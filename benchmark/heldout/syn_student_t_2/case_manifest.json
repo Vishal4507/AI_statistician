@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_student_t_2",
+  "family": "two_group",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "response_score": "outcome",
+    "arm": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1014,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 90,
+  "data_sha256": "13ff78d41e36df1ea3cfe45d2a439c235a6606278d34229fbec5c03a94d3f2c2"
+}

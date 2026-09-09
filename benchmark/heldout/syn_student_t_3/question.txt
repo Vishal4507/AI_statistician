@@ -1,0 +1,3 @@
+Do control and treatment differ in response score? Report the size of any difference.
+
+Analysis objective: compare two independent groups on a continuous outcome

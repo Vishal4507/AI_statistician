@@ -1,0 +1,40 @@
+{
+  "case_id": "syn_welch_anova_2",
+  "values": {
+    "group_ns[0]": 60.0,
+    "group_ns[1]": 25.0,
+    "group_ns[2]": 70.0,
+    "group_means[0]": 0.1345281144325419,
+    "group_means[1]": 0.916652376859622,
+    "group_means[2]": 0.6863287170305715,
+    "group_sds[0]": 1.0742662678067563,
+    "group_sds[1]": 2.397271511257211,
+    "group_sds[2]": 1.4077558934764935,
+    "group_medians[0]": 0.07195009489884639,
+    "group_medians[1]": 1.3815142119675066,
+    "group_medians[2]": 0.7132600778001599,
+    "total_n": 155.0,
+    "n_groups": 3.0,
+    "conf_level": 0.95,
+    "statistic": 3.805029608223375,
+    "p_value": 0.028068928234826825,
+    "df_between": 2.0,
+    "df_within": 57.402082173473026,
+    "ss_between": 14.769326925265771,
+    "ss_within": 342.75727884077867,
+    "ss_total": 357.52660576604444,
+    "ms_within": 2.254982097636702,
+    "effect_size.value": 0.02851553018849751,
+    "effect_size.conf_level": 0.95,
+    "eta_squared.value": 0.04130972824699489,
+    "eta_squared.conf_level": 0.95,
+    "estimate": 0.7821242624270801
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "welch_anova",
+    "outcome": "handling_time",
+    "group": "tier"
+  },
+  "default_rtol": 1e-06
+}

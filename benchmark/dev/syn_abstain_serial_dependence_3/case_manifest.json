@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_abstain_serial_dependence_3",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "value": "outcome",
+    "temperature": "predictor",
+    "hour_index": "time"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1301,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "95f14f4eed04ca8bb6740259ec6a608793eb6c7b0c65e9dfeb6a599bb41f8723"
+}

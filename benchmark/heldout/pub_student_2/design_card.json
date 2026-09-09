@@ -1,0 +1,11 @@
+{
+  "observational_unit": "student",
+  "sampling_unit": "student",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "Portuguese-course students at two schools",
+  "known_missingness": null
+}

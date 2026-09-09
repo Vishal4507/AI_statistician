@@ -1,0 +1,32 @@
+{
+  "case_id": "pub_bank_3",
+  "values": {
+    "group_ns[0]": 2615.0,
+    "group_ns[1]": 385.0,
+    "group_means[0]": 220.39961759082217,
+    "group_means[1]": 528.1792207792208,
+    "group_sds[0]": 197.78419201344744,
+    "group_sds[1]": 415.77114796936814,
+    "group_medians[0]": 165.0,
+    "group_medians[1]": 408.0,
+    "total_n": 3000.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -208.0,
+    "statistic": 211469.0,
+    "p_value": 1.3809520178345057e-75,
+    "prob_superiority": 0.21004593876486802,
+    "effect_size.value": -0.579908122470264,
+    "effect_size.ci_low": -0.6031769618516544,
+    "effect_size.ci_high": -0.555653024434563,
+    "effect_size.conf_level": 0.95,
+    "n_ties": 2254.0
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "mann_whitney",
+    "outcome": "duration",
+    "group": "y"
+  },
+  "default_rtol": 1e-06
+}

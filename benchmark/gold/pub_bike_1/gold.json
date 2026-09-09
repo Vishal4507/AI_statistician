@@ -1,0 +1,19 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity",
+    "independence"
+  ],
+  "abstain_reason": "serial_dependence",
+  "expected_hazards": [
+    "serial_dependence"
+  ],
+  "interpretation_constraints": [
+    "no in-scope method models serial dependence"
+  ],
+  "rationale": "Rows are consecutive hourly observations of the same city system. Rental counts are strongly autocorrelated, so every in-scope method's independence assumption fails regardless of how well the variable types fit.",
+  "case_id": "pub_bike_1"
+}

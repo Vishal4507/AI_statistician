@@ -1,0 +1,3 @@
+How strongly is temperature related to bike rental volume?
+
+Analysis objective: quantify association between two continuous variables

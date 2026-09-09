@@ -1,0 +1,3 @@
+Do subscribers and non-subscribers differ in call duration? Call duration is known to be strongly right-skewed.
+
+Analysis objective: compare the distributions of two independent groups

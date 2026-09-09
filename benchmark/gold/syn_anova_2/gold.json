@@ -1,0 +1,20 @@
+{
+  "primary_method": "one_way_anova",
+  "accepted_methods": [
+    "one_way_anova",
+    "welch_anova"
+  ],
+  "required_checks": [
+    "independence",
+    "n_groups",
+    "variance_balance",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational groups: no causal claim"
+  ],
+  "rationale": "Realised variance ratio 1.88 with balanced groups; ordinary ANOVA is justified and Welch remains defensible.",
+  "case_id": "syn_anova_2"
+}

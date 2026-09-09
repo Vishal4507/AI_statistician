@@ -1,0 +1,6 @@
+{
+  "case_id": "syn_abstain_clustered_6",
+  "values": {},
+  "note": "abstention case: no reference computation",
+  "default_rtol": 1e-06
+}

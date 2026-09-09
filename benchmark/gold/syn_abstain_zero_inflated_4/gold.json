@@ -1,0 +1,14 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "zero_inflation",
+  "expected_hazards": [],
+  "interpretation_constraints": [],
+  "rationale": "Zero inflation from a separate structural process; neither Poisson nor negative binomial is adequate.",
+  "case_id": "syn_abstain_zero_inflated_4"
+}

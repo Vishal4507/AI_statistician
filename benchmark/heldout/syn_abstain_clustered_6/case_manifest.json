@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_abstain_clustered_6",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "value": "outcome",
+    "arm": "group",
+    "clinic_id": "cluster"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1322,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "1afec0de9f5aa56c207fa7a6920e012f888ed1212feffe4c55f42ead4733e8e4"
+}

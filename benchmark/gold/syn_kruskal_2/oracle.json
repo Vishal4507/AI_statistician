@@ -1,0 +1,41 @@
+{
+  "case_id": "syn_kruskal_2",
+  "values": {
+    "group_ns[0]": 48.0,
+    "group_ns[1]": 48.0,
+    "group_ns[2]": 48.0,
+    "group_ns[3]": 48.0,
+    "group_means[0]": 1.0662384893723007,
+    "group_means[1]": 2.084124602227156,
+    "group_means[2]": 2.252548519164898,
+    "group_means[3]": 3.7563759260298926,
+    "group_sds[0]": 0.630869928088225,
+    "group_sds[1]": 1.5881382144497078,
+    "group_sds[2]": 1.4061750255667609,
+    "group_sds[3]": 3.2388110299183617,
+    "group_medians[0]": 0.8647257768242469,
+    "group_medians[1]": 1.59251408365156,
+    "group_medians[2]": 1.9560271365397779,
+    "group_medians[3]": 2.992916902538619,
+    "total_n": 192.0,
+    "n_groups": 4.0,
+    "conf_level": 0.95,
+    "statistic": 48.49831336355794,
+    "p_value": 1.668097531327329e-10,
+    "df": 3.0,
+    "effect_size.value": 0.25391787101339236,
+    "effect_size.conf_level": 0.95,
+    "estimate": 2.1281911257143724,
+    "mean_ranks[0]": 53.8125,
+    "mean_ranks[1]": 95.8125,
+    "mean_ranks[2]": 104.83333333333333,
+    "mean_ranks[3]": 131.54166666666666
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "kruskal_wallis",
+    "outcome": "claim_amount",
+    "group": "region"
+  },
+  "default_rtol": 1e-06
+}

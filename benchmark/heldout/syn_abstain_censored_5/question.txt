@@ -1,0 +1,3 @@
+Analyse whether the two groups differ in follow-up duration. Use whatever approach the data supports.
+
+Analysis objective: determine whether a valid analysis is possible and, if so, perform it

@@ -1,0 +1,20 @@
+{
+  "primary_method": "mann_whitney",
+  "accepted_methods": [
+    "mann_whitney"
+  ],
+  "required_checks": [
+    "independence",
+    "group_sizes",
+    "variance_structure",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation",
+    "describe stochastic ordering, not medians"
+  ],
+  "rationale": "variance ratio 4.42, group sizes [2615, 385], max |skew| 2.81",
+  "case_id": "pub_bank_3"
+}

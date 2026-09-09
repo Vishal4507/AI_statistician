@@ -1,0 +1,21 @@
+{
+  "primary_method": "ols",
+  "accepted_methods": [
+    "ols"
+  ],
+  "required_checks": [
+    "independence",
+    "functional_form",
+    "residual_pattern",
+    "influence",
+    "collinearity"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation",
+    "coefficients are conditional on included variables"
+  ],
+  "rationale": "",
+  "case_id": "pub_student_4"
+}

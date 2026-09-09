@@ -1,0 +1,17 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "pairing",
+  "expected_hazards": [
+    "pairing",
+    "repeated_measures"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "Pre/post measurements on the same participant are paired; the library contains only independent-sample methods.",
+  "case_id": "syn_abstain_paired_7"
+}

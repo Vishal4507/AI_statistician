@@ -1,0 +1,4 @@
+system_a,system_b,n_cases,acc_a,acc_b,uplift_b_minus_a,uplift_ci_low,uplift_ci_high,bootstrap_p,mcnemar_p,b_only_correct,a_only_correct
+A_direct,B_tools,48,0.5625,0.5,-0.0625,-0.14583333333333337,0.02083333333333337,0.2346,0.375,1,4
+A_direct,C_protocol,48,0.5625,1.0,0.4375,0.29166666666666663,0.5833333333333333,0.0,9.5367431640625e-07,21,0
+B_tools,C_protocol,48,0.5,1.0,0.5,0.35416666666666663,0.6458333333333333,0.0,1.1920928955078125e-07,24,0

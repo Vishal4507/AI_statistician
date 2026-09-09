@@ -1,0 +1,11 @@
+{
+  "observational_unit": "customer",
+  "sampling_unit": "customer",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "active customers",
+  "known_missingness": null
+}

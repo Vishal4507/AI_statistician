@@ -1,0 +1,22 @@
+{
+  "primary_method": "logistic",
+  "accepted_methods": [
+    "logistic"
+  ],
+  "required_checks": [
+    "outcome_scale",
+    "design",
+    "functional_form",
+    "binary_coding",
+    "events_per_parameter",
+    "separation",
+    "collinearity"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "report odds ratios, not probability changes"
+  ],
+  "rationale": "Binary outcome generated through a logit link.",
+  "case_id": "syn_logistic_1"
+}

@@ -1,0 +1,3 @@
+How strongly are advertising spend and weekly revenue related, and what is the form of that relationship?
+
+Analysis objective: quantify association between two continuous variables

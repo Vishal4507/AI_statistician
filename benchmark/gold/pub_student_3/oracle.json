@@ -1,0 +1,24 @@
+{
+  "case_id": "pub_student_3",
+  "values": {
+    "conf_level": 0.95,
+    "n": 649.0,
+    "estimate": 0.2747118483356099,
+    "statistic": 0.2747118483356099,
+    "p_value": 1.0606240382701238e-12,
+    "ci_low": 0.20063878500834076,
+    "ci_high": 0.3456617333338204,
+    "r_squared": 0.07546659961596715,
+    "effect_size.value": 0.2747118483356099,
+    "effect_size.ci_low": 0.20063878500834076,
+    "effect_size.ci_high": 0.3456617333338204,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_categorical_or_correlation",
+  "args": {
+    "method": "spearman",
+    "var1": "studytime",
+    "var2": "G3"
+  },
+  "default_rtol": 1e-06
+}

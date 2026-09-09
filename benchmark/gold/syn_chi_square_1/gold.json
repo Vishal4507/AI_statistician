@@ -1,0 +1,18 @@
+{
+  "primary_method": "chi_square",
+  "accepted_methods": [
+    "chi_square"
+  ],
+  "required_checks": [
+    "independent_counts",
+    "table_dimension",
+    "expected_cell_counts"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "association only, not individual risk or causation"
+  ],
+  "rationale": "2x3 table with adequate expected counts.",
+  "case_id": "syn_chi_square_1"
+}

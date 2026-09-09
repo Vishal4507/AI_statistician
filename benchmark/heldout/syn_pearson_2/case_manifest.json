@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_pearson_2",
+  "family": "association",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "advertising_spend": "variable",
+    "weekly_revenue": "variable"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1168,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 90,
+  "data_sha256": "3adbbe8dab6f461dc34feb3f2c68c8d53f0ba3c87978a4dda99c0f9aeaf8b19d"
+}

@@ -1,0 +1,3 @@
+How strongly are bounce rates and exit rates related, and what form does that relationship take?
+
+Analysis objective: quantify association between two continuous variables

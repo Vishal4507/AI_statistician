@@ -1,0 +1,21 @@
+{
+  "primary_method": "poisson",
+  "accepted_methods": [
+    "poisson",
+    "negative_binomial"
+  ],
+  "required_checks": [
+    "count_scale",
+    "independence",
+    "conditional_dispersion",
+    "excess_zeros",
+    "exposure"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "report incidence-rate ratios"
+  ],
+  "rationale": "Equidispersed counts from a log-link Poisson process; NB converges to Poisson and remains defensible.",
+  "case_id": "syn_poisson_2"
+}

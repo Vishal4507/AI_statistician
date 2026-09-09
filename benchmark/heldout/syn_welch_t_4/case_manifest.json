@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_welch_t_4",
+  "family": "two_group",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "monthly_spend": "outcome",
+    "plan": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1049,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 132,
+  "data_sha256": "dcf6a30cdbc570ebf71a350c584848a39e4be471a25d1a239ba436ae50abe073"
+}

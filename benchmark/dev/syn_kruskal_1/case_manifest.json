@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_kruskal_1",
+  "family": "multi_group",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "claim_amount": "outcome",
+    "region": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1112,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 144,
+  "data_sha256": "c131735f699d324fed5710eafe6d027dc98c94852d54bb7dfef44332fadb636c"
+}

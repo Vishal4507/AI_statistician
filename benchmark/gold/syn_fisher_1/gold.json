@@ -1,0 +1,18 @@
+{
+  "primary_method": "fisher_exact",
+  "accepted_methods": [
+    "fisher_exact"
+  ],
+  "required_checks": [
+    "independent_counts",
+    "table_dimension",
+    "expected_cell_counts"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "association only, not individual risk"
+  ],
+  "rationale": "2x2 table with n=26; expected counts fall below 5, so the chi-square approximation is not eligible.",
+  "case_id": "syn_fisher_1"
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_fisher_1",
+  "family": "categorical",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "site": "variable",
+    "adverse_event": "variable"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1147,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 26,
+  "data_sha256": "4f1f188c862166b9019b29a504a2ac103bd8dc6e7527e691a21245532f1ddc0f"
+}

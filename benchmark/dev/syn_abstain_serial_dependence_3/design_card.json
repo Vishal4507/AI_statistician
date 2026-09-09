@@ -1,0 +1,11 @@
+{
+  "observational_unit": "hourly observation",
+  "sampling_unit": "hourly observation",
+  "repeated_id_column": null,
+  "time_column": "hour_index",
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "monitored period",
+  "known_missingness": null
+}

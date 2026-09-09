@@ -1,0 +1,19 @@
+{
+  "primary_method": "welch_anova",
+  "accepted_methods": [
+    "welch_anova"
+  ],
+  "required_checks": [
+    "independence",
+    "n_groups",
+    "variance_balance",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational groups: no causal claim"
+  ],
+  "rationale": "Realised variance ratio 4.98 across 3 groups with n [60, 25, 70]; Welch ANOVA.",
+  "case_id": "syn_welch_anova_2"
+}

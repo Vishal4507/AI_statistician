@@ -1,0 +1,20 @@
+{
+  "primary_method": "student_t",
+  "accepted_methods": [
+    "student_t",
+    "welch_t"
+  ],
+  "required_checks": [
+    "independence",
+    "group_sizes",
+    "variance_structure",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational groups: no causal claim"
+  ],
+  "rationale": "Realised variance ratio 1.45 with balanced groups and a mean-difference estimand; Student is justified and Welch is never wrong.",
+  "case_id": "syn_welch_t_3"
+}

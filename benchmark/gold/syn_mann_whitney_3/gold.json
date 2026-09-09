@@ -1,0 +1,20 @@
+{
+  "primary_method": "mann_whitney",
+  "accepted_methods": [
+    "mann_whitney"
+  ],
+  "required_checks": [
+    "independence",
+    "group_sizes",
+    "variance_structure",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "describe stochastic ordering, not medians, unless shapes match",
+    "observational groups: no causal claim"
+  ],
+  "rationale": "Realised max |skew| 2.68 with a distributional-shift estimand; the rank test targets stochastic ordering.",
+  "case_id": "syn_mann_whitney_3"
+}

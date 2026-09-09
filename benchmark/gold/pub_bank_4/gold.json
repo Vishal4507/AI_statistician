@@ -1,0 +1,19 @@
+{
+  "primary_method": "welch_t",
+  "accepted_methods": [
+    "welch_t"
+  ],
+  "required_checks": [
+    "independence",
+    "group_sizes",
+    "variance_structure",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation"
+  ],
+  "rationale": "variance ratio 1.68, group sizes [3526, 474], max |skew| 0.78",
+  "case_id": "pub_bank_4"
+}

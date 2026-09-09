@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_spearman_3",
+  "family": "association",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "tenure_months": "variable",
+    "engagement_rating": "variable"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1196,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 130,
+  "data_sha256": "6ffcd1a7f1267455e314b885a99110d8a6247e245d76f14b813f469f861e369c"
+}

@@ -1,0 +1,11 @@
+{
+  "observational_unit": "measurement",
+  "sampling_unit": "measurement",
+  "repeated_id_column": "participant_id",
+  "time_column": null,
+  "pairing": true,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "enrolled participants",
+  "known_missingness": null
+}

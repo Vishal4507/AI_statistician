@@ -1,0 +1,3 @@
+Do sessions that ended in a purchase differ from those that did not in time spent on product pages?
+
+Analysis objective: compare two independent groups on a continuous outcome

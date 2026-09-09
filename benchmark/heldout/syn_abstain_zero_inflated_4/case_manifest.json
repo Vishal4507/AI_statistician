@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_abstain_zero_inflated_4",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "claim_count": "outcome",
+    "predictor_a": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1308,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "2b90d1614c449bf0dda93625ef79271563f425b5da9278beb3df5063d716daab"
+}

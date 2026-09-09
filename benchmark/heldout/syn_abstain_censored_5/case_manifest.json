@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_abstain_censored_5",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "followup_days": "outcome",
+    "group": "group",
+    "was_censored": "indicator"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1315,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "b69839539c80b3554402dee8482eab1cb64e73876854437ad96a87aaf51da09c"
+}

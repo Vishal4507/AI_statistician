@@ -1,0 +1,28 @@
+{
+  "case_id": "syn_fisher_1",
+  "values": {
+    "conf_level": 0.95,
+    "observed[0][0]": 6.0,
+    "observed[0][1]": 4.0,
+    "observed[1][0]": 8.0,
+    "observed[1][1]": 8.0,
+    "total_n": 26.0,
+    "n_rows": 2.0,
+    "n_cols": 2.0,
+    "p_value": 0.7014941445685825,
+    "estimate": 1.5,
+    "effect_size.value": 1.5,
+    "effect_size.ci_low": 0.3027527588336502,
+    "effect_size.ci_high": 7.431806760962594,
+    "effect_size.conf_level": 0.95,
+    "ci_low": 0.3027527588336502,
+    "ci_high": 7.431806760962594
+  },
+  "tool": "run_categorical_or_correlation",
+  "args": {
+    "method": "fisher_exact",
+    "var1": "site",
+    "var2": "adverse_event"
+  },
+  "default_rtol": 1e-06
+}

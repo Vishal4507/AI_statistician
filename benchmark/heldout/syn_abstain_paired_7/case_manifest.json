@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_abstain_paired_7",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "value": "outcome",
+    "timepoint": "group",
+    "participant_id": "repeated_id"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1329,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "00b9c036ecf156af043896c7dd335ecfc11c24098d50a6e381cad0df517da8d0"
+}

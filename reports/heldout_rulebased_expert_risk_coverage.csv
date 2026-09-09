@@ -1,0 +1,4 @@
+system,n_runs,coverage,selective_accuracy,overall_accuracy,accuracy_on_supported,abstention_recall,n_abstention_cases,unsafe_selection_rate,over_abstention_rate
+A_direct,144,1.0,0.5625,0.5625,0.6923076923076923,0.0,27,0.1875,0.0
+B_tools,144,1.0,0.5,0.5,0.6153846153846154,0.0,27,0.1875,0.0
+C_protocol,144,0.8125,1.0,1.0,1.0,1.0,27,0.0,0.0

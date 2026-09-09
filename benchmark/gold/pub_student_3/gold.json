@@ -1,0 +1,19 @@
+{
+  "primary_method": "spearman",
+  "accepted_methods": [
+    "spearman"
+  ],
+  "required_checks": [
+    "independence",
+    "scale",
+    "linearity_or_monotonicity",
+    "influential_points"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation"
+  ],
+  "rationale": "Pearson 0.250 vs Spearman 0.275, quadratic gain 0.005, 35 high-leverage points",
+  "case_id": "pub_student_3"
+}

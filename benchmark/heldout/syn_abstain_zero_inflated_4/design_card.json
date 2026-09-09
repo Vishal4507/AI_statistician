@@ -1,0 +1,11 @@
+{
+  "observational_unit": "policy",
+  "sampling_unit": "policy",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "policyholders",
+  "known_missingness": null
+}

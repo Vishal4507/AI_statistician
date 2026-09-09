@@ -1,0 +1,21 @@
+{
+  "primary_method": "kruskal_wallis",
+  "accepted_methods": [
+    "kruskal_wallis",
+    "welch_anova"
+  ],
+  "required_checks": [
+    "independence",
+    "n_groups",
+    "variance_balance",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "stochastic dominance, not median equality",
+    "observational groups: no causal claim"
+  ],
+  "rationale": "Realised max |skew| 2.25 across groups; omnibus rank test.",
+  "case_id": "syn_kruskal_2"
+}

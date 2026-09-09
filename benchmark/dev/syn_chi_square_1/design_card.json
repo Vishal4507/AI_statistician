@@ -1,0 +1,11 @@
+{
+  "observational_unit": "enquiry",
+  "sampling_unit": "enquiry",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "inbound enquiries",
+  "known_missingness": null
+}

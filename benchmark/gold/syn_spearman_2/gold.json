@@ -1,0 +1,19 @@
+{
+  "primary_method": "spearman",
+  "accepted_methods": [
+    "spearman"
+  ],
+  "required_checks": [
+    "scale",
+    "linearity_or_monotonicity",
+    "influential_points",
+    "range"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "monotone association only"
+  ],
+  "rationale": "Outcome is ordinal with 5 levels; rank correlation is the appropriate measure.",
+  "case_id": "syn_spearman_2"
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_anova_1",
+  "family": "multi_group",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "satisfaction_score": "outcome",
+    "segment": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1077,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 165,
+  "data_sha256": "b2929fd67fc936781acaf44cfddbe1fc5c9a002811e7785d2a0a3a01797339fa"
+}

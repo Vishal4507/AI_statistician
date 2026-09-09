@@ -1,0 +1,16 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "repeated_measures",
+  "expected_hazards": [
+    "repeated_measures"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "Each subject contributes four measurements; observations are not independent and no in-scope method models subject effects.",
+  "case_id": "syn_abstain_repeated_measures_1"
+}

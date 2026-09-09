@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_negbin_1",
+  "family": "count_model",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "incidents": "outcome",
+    "predictor_a": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1266,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 300,
+  "data_sha256": "38ba23832c82c182e7aa80b67135b576603d59433299e915bc3330a9e9b0f56b"
+}

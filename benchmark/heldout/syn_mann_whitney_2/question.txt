@@ -1,0 +1,3 @@
+Is session duration systematically higher in one of cohort one or cohort two? The distribution is known to be skewed and we care about the overall shift, not the average.
+
+Analysis objective: compare the distributions of two independent groups

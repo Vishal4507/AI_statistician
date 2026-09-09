@@ -1,0 +1,24 @@
+{
+  "case_id": "syn_spearman_3",
+  "values": {
+    "conf_level": 0.95,
+    "n": 130.0,
+    "estimate": 0.19492004533722976,
+    "statistic": 0.19492004533722976,
+    "p_value": 0.026261210678088388,
+    "ci_low": 0.02188012003449192,
+    "ci_high": 0.35662114855030513,
+    "r_squared": 0.037993824074267706,
+    "effect_size.value": 0.19492004533722976,
+    "effect_size.ci_low": 0.02188012003449192,
+    "effect_size.ci_high": 0.35662114855030513,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_categorical_or_correlation",
+  "args": {
+    "method": "spearman",
+    "var1": "tenure_months",
+    "var2": "engagement_rating"
+  },
+  "default_rtol": 1e-06
+}

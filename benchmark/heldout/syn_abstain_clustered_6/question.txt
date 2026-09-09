@@ -1,0 +1,3 @@
+Analyse whether the enhanced arm improves the measured value. Use whatever approach the data supports.
+
+Analysis objective: determine whether a valid analysis is possible and, if so, perform it

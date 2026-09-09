@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_logistic_2",
+  "family": "regression",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "converted": "outcome",
+    "predictor_a": "predictor",
+    "predictor_b": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1238,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 180,
+  "data_sha256": "71052481564488728135d190b10578b689e3b92c2ce04558ae4534d032677246"
+}

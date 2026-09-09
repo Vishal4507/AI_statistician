@@ -1,0 +1,11 @@
+{
+  "observational_unit": "client contact",
+  "sampling_unit": "client contact",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "clients contacted in the marketing campaign",
+  "known_missingness": "'unknown' is used as a category level in several fields"
+}

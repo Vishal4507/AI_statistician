@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_chi_square_2",
+  "family": "categorical",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "channel": "variable",
+    "enquiry_outcome": "variable"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1133,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 600,
+  "data_sha256": "73b070e2d813b0ec9d55a8c06d425ae4184f1599f7c0b2e9bf9105aed63e9264"
+}

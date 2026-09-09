@@ -1,0 +1,20 @@
+{
+  "case_id": "pub_shoppers_2",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "VisitorType": "variable",
+    "Revenue": "variable"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "online_shoppers",
+  "source_doi": "10.24432/C5F88Q",
+  "n_rows": 6000,
+  "data_sha256": "9afc8c4835c3271af703383d188456daecad6eb844e74c10f8c9f9ecacfb1563",
+  "source_url": "https://archive.ics.uci.edu/dataset/468",
+  "source_license": "CC BY 4.0"
+}

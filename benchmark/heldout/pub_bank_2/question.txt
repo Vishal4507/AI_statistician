@@ -1,0 +1,3 @@
+Which call characteristics are associated with the odds that a client subscribes to a term deposit?
+
+Analysis objective: model a binary outcome from several predictors

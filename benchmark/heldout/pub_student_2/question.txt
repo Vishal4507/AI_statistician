@@ -1,0 +1,3 @@
+Does final grade differ across mother's occupation categories?
+
+Analysis objective: compare three or more independent groups

@@ -1,0 +1,16 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "clustering",
+  "expected_hazards": [
+    "clustering"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "Patients are nested in clinics with substantial between-clinic variance; clustering violates independence.",
+  "case_id": "syn_abstain_clustered_6"
+}

@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_mann_whitney_1",
+  "family": "two_group",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "session_duration": "outcome",
+    "cohort": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1056,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 117,
+  "data_sha256": "66d5353d12c92326f98dc203750e6a4b778e5d7fa1e41efd86d56a1e11c08186"
+}

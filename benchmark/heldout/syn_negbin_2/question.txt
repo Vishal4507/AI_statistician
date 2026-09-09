@@ -1,0 +1,3 @@
+What explains variation in the number of incidents? Note that observation windows differ in length across units.
+
+Analysis objective: model a count outcome

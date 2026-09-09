@@ -1,0 +1,19 @@
+{
+  "primary_method": "negative_binomial",
+  "accepted_methods": [
+    "negative_binomial"
+  ],
+  "required_checks": [
+    "count_scale",
+    "independence",
+    "conditional_dispersion",
+    "excess_zeros"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "report incidence-rate ratios and the exposure basis"
+  ],
+  "rationale": "Counts generated from a negative-binomial process; conditional dispersion exceeds the Poisson mean-variance identity.",
+  "case_id": "syn_negbin_3"
+}

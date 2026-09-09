@@ -1,0 +1,20 @@
+{
+  "case_id": "pub_bank_3",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "duration": "outcome",
+    "y": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "bank_marketing",
+  "source_doi": "10.24432/C5K306",
+  "n_rows": 3000,
+  "data_sha256": "9c58a0a23be8f10e7159837f7bb2507e6cc085afab0e125a335ff8c82d6afcc3",
+  "source_url": "https://archive.ics.uci.edu/dataset/222",
+  "source_license": "CC BY 4.0"
+}

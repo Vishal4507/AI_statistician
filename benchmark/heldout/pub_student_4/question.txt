@@ -1,0 +1,3 @@
+Which school-related factors are related to final grade, and by how much?
+
+Analysis objective: model a continuous outcome from several predictors

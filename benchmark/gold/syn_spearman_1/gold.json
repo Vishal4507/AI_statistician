@@ -1,0 +1,19 @@
+{
+  "primary_method": "spearman",
+  "accepted_methods": [
+    "spearman"
+  ],
+  "required_checks": [
+    "scale",
+    "linearity_or_monotonicity",
+    "influential_points",
+    "range"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "monotone, not linear, association"
+  ],
+  "rationale": "Relationship is monotone but distinctly nonlinear; Pearson would understate a strong monotone association.",
+  "case_id": "syn_spearman_1"
+}

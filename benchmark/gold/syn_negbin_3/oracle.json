@@ -1,0 +1,48 @@
+{
+  "case_id": "syn_negbin_3",
+  "values": {
+    "n_used": 300.0,
+    "n_parameters": 2.0,
+    "n_dropped_missing": 0.0,
+    "conf_level": 0.95,
+    "coefficients[0].estimate": 0.7928521808079921,
+    "coefficients[0].se": 0.06203581423077546,
+    "coefficients[0].statistic": 12.780555726383367,
+    "coefficients[0].p_value": 2.1055962996094537e-37,
+    "coefficients[0].ci_low": 0.6712642191640549,
+    "coefficients[0].ci_high": 0.9144401424519294,
+    "coefficients[0].irr": 2.2096898820257795,
+    "coefficients[0].irr_ci_low": 1.9567094672461,
+    "coefficients[0].irr_ci_high": 2.49537780465647,
+    "coefficients[1].estimate": 0.5115043685384046,
+    "coefficients[1].se": 0.06031639279507539,
+    "coefficients[1].statistic": 8.480354093392785,
+    "coefficients[1].p_value": 2.2450961812693115e-17,
+    "coefficients[1].ci_low": 0.3932864109826857,
+    "coefficients[1].ci_high": 0.6297223260941236,
+    "coefficients[1].irr": 1.6677982919529526,
+    "coefficients[1].irr_ci_low": 1.481842744593024,
+    "coefficients[1].irr_ci_high": 1.8770892881788992,
+    "nb_alpha": 0.6341421540649727,
+    "pearson_dispersion": 1.0310656543680006,
+    "deviance_dispersion": 1.1206761830198142,
+    "n_zeros": 81.0,
+    "pct_zeros": 27.0,
+    "expected_pct_zeros": 13.734952392178668,
+    "mean_outcome": 2.5833333333333335,
+    "var_outcome": 9.227146042363431,
+    "marginal_var_mean_ratio": 3.5717984680116506,
+    "log_likelihood": -603.3500801056495,
+    "aic": 1210.700160211299,
+    "df_resid": 298.0
+  },
+  "tool": "fit_regression",
+  "args": {
+    "method": "negative_binomial",
+    "outcome": "incidents",
+    "predictors": [
+      "predictor_a"
+    ]
+  },
+  "default_rtol": 1e-06
+}

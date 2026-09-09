@@ -1,0 +1,16 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "serial_dependence",
+  "expected_hazards": [
+    "serial_dependence"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "Strong AR(1) serial dependence; the library contains no time-series model and independence is violated.",
+  "case_id": "syn_abstain_serial_dependence_3"
+}

@@ -1,0 +1,22 @@
+{
+  "case_id": "pub_bank_2",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "y": "outcome",
+    "duration": "predictor",
+    "campaign": "predictor",
+    "age": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "bank_marketing",
+  "source_doi": "10.24432/C5K306",
+  "n_rows": 4000,
+  "data_sha256": "392c682dbd5cf635bd205381167dc765f7f0d6297ccb910f11f44d2b71001d84",
+  "source_url": "https://archive.ics.uci.edu/dataset/222",
+  "source_license": "CC BY 4.0"
+}

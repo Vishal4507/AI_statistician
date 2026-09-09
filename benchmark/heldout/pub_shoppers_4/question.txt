@@ -1,0 +1,3 @@
+Which session metrics are associated with the odds that a session generates revenue?
+
+Analysis objective: model a binary outcome from several predictors

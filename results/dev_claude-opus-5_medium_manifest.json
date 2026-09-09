@@ -1,0 +1,34 @@
+{
+  "timestamp_utc": "2026-08-29T08:07:34.058117+00:00",
+  "client": "anthropic:claude-opus-5:medium:think=1",
+  "split": "dev",
+  "reps": 1,
+  "systems": [
+    "A_direct",
+    "B_tools",
+    "C_protocol"
+  ],
+  "git_commit": "aa6e27cec303a5ede95ea6982ffaa89830603633",
+  "prompt_sha256_16": "7ba9f7108937e6f9",
+  "python": "3.12.4",
+  "platform": "macOS-10.16-x86_64-i386-64bit",
+  "versions": {
+    "numpy": "1.26.3",
+    "pandas": "2.1.4",
+    "scipy": "1.13.1",
+    "statsmodels": "0.14.2"
+  },
+  "determinism_controls": [
+    "pinned model id",
+    "fixed effort",
+    "frozen prompt hash",
+    "n repetitions"
+  ],
+  "n_cases": 16,
+  "n_planned": 48,
+  "n_already_done": 0,
+  "n_to_run": 48,
+  "n_executed": 48,
+  "n_errors": 16,
+  "elapsed_seconds": 216.4
+}

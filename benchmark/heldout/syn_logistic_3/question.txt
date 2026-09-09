@@ -1,0 +1,3 @@
+Which predictors are associated with the odds of conversion, and how strong is each association?
+
+Analysis objective: model a binary outcome from several predictors

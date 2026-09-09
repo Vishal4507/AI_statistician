@@ -1,0 +1,34 @@
+{
+  "case_id": "pub_student_1",
+  "values": {
+    "group_ns[0]": 383.0,
+    "group_ns[1]": 266.0,
+    "group_means[0]": 12.2532637075718,
+    "group_means[1]": 11.406015037593985,
+    "group_sds[0]": 3.124147389601147,
+    "group_sds[1]": 3.3206900714635226,
+    "group_medians[0]": 12.0,
+    "group_medians[1]": 11.0,
+    "total_n": 649.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": 0.8472486699778159,
+    "se": 0.2587249998876976,
+    "ci_low": 0.3390333900095852,
+    "ci_high": 1.3554639499460466,
+    "statistic": 3.274707393354231,
+    "p_value": 0.0011245651360440646,
+    "df": 547.4394438619771,
+    "effect_size.value": 0.262801031933344,
+    "effect_size.ci_low": 0.10571340524896339,
+    "effect_size.ci_high": 0.41988865861772456,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "welch_t",
+    "outcome": "G3",
+    "group": "sex"
+  },
+  "default_rtol": 1e-06
+}

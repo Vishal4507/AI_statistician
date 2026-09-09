@@ -1,0 +1,11 @@
+{
+  "observational_unit": "record",
+  "sampling_unit": "record",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "sampled records",
+  "known_missingness": null
+}

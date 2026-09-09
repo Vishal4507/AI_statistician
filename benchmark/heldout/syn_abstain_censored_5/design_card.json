@@ -1,0 +1,11 @@
+{
+  "observational_unit": "subject",
+  "sampling_unit": "subject",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "followed cohort",
+  "known_missingness": null
+}

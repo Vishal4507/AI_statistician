@@ -1,0 +1,34 @@
+{
+  "case_id": "syn_welch_t_4",
+  "values": {
+    "group_ns[0]": 22.0,
+    "group_ns[1]": 110.0,
+    "group_means[0]": 0.08294405860048874,
+    "group_means[1]": 0.7654375124735782,
+    "group_sds[0]": 0.7081872941218981,
+    "group_sds[1]": 0.9824832860724216,
+    "group_medians[0]": 0.19182850693536357,
+    "group_medians[1]": 0.8173017133468785,
+    "total_n": 132.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -0.6824934538730895,
+    "se": 0.17768510515132566,
+    "ci_low": -1.041848311041585,
+    "ci_high": -0.32313859670459394,
+    "statistic": -3.8410279426170435,
+    "p_value": 0.000437247547046095,
+    "df": 39.16084672185391,
+    "effect_size.value": -0.7969437057694345,
+    "effect_size.ci_low": -1.264830341737675,
+    "effect_size.ci_high": -0.3290570698011942,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "welch_t",
+    "outcome": "monthly_spend",
+    "group": "plan"
+  },
+  "default_rtol": 1e-06
+}

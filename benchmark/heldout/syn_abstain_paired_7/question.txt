@@ -1,0 +1,3 @@
+Analyse whether values change between the two timepoints. Use whatever approach the data supports.
+
+Analysis objective: determine whether a valid analysis is possible and, if so, perform it

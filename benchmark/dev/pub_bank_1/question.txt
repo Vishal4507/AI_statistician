@@ -1,0 +1,3 @@
+Is there an association between contact method and whether the client subscribed to a term deposit?
+
+Analysis objective: test association between two categorical variables

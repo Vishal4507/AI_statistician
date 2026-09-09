@@ -1,0 +1,32 @@
+{
+  "case_id": "pub_shoppers_1",
+  "values": {
+    "group_ns[0]": 3414.0,
+    "group_ns[1]": 586.0,
+    "group_means[0]": 1085.8050250200213,
+    "group_means[1]": 2021.797486040341,
+    "group_sds[0]": 1763.9597509470484,
+    "group_sds[1]": 2706.481019590036,
+    "group_medians[0]": 529.8511905,
+    "group_medians[1]": 1075.6684525,
+    "total_n": 4000.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -468.5,
+    "statistic": 666518.5,
+    "p_value": 3.23155863930998e-38,
+    "prob_superiority": 0.3331586360919003,
+    "effect_size.value": -0.33368272781619945,
+    "effect_size.ci_low": -0.3609415698753649,
+    "effect_size.ci_high": -0.3058542101795417,
+    "effect_size.conf_level": 0.95,
+    "n_ties": 598.0
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "mann_whitney",
+    "outcome": "ProductRelated_Duration",
+    "group": "Revenue"
+  },
+  "default_rtol": 1e-06
+}

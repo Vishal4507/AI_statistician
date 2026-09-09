@@ -1,0 +1,3 @@
+How is weekly study time related to final grade? Study time is recorded on a four-point ordered scale.
+
+Analysis objective: quantify association between two variables

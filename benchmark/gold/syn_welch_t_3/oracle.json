@@ -1,0 +1,34 @@
+{
+  "case_id": "syn_welch_t_3",
+  "values": {
+    "group_ns[0]": 50.0,
+    "group_ns[1]": 50.0,
+    "group_means[0]": -0.0561595178521225,
+    "group_means[1]": 0.21957687479658258,
+    "group_sds[0]": 1.1141876213913458,
+    "group_sds[1]": 1.3409779481418955,
+    "group_medians[0]": -0.17183264579136387,
+    "group_medians[1]": 0.23161614312124365,
+    "total_n": 100.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -0.2757363926487051,
+    "se": 0.24656179400160735,
+    "ci_low": -0.7650302483499533,
+    "ci_high": 0.21355746305254308,
+    "statistic": -1.1183257072136146,
+    "p_value": 0.2661617711334326,
+    "df": 98.0,
+    "effect_size.value": -0.2219490406132391,
+    "effect_size.ci_low": -0.6116080521397963,
+    "effect_size.ci_high": 0.16883408361935873,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "student_t",
+    "outcome": "monthly_spend",
+    "group": "plan"
+  },
+  "default_rtol": 1e-06
+}

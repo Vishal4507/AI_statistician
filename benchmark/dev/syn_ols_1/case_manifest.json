@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_ols_1",
+  "family": "regression",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "delivery_cost": "outcome",
+    "predictor_a": "predictor",
+    "predictor_b": "predictor"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1203,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 260,
+  "data_sha256": "a110e9df83247778afea6691bd4dc650f15b3dba4ff29187ff29a0fc01631a3b"
+}

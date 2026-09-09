@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_abstain_repeated_measures_1",
+  "family": "abstention",
+  "origin": "synthetic",
+  "split": "dev",
+  "variable_roles": {
+    "value": "outcome",
+    "subject_id": "repeated_id",
+    "condition": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1287,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 200,
+  "data_sha256": "7f2d0d5857b80f89a9ddf481d189ad82bdf935c79ef4b183dd281483e08ab325"
+}

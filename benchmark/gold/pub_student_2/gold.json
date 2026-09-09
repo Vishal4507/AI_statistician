@@ -1,0 +1,21 @@
+{
+  "primary_method": "welch_anova",
+  "accepted_methods": [
+    "welch_anova",
+    "kruskal_wallis"
+  ],
+  "required_checks": [
+    "independence",
+    "n_groups",
+    "variance_balance",
+    "skew_and_outliers"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation",
+    "if a rank test is used, describe stochastic ordering"
+  ],
+  "rationale": "5 groups, variance ratio 1.29, sizes [135, 48, 258, 136, 72], max |skew| 1.51",
+  "case_id": "pub_student_2"
+}

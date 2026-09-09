@@ -1,0 +1,11 @@
+{
+  "observational_unit": "hourly observation",
+  "sampling_unit": "hourly observation",
+  "repeated_id_column": null,
+  "time_column": "Date_Hour",
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "hourly rental demand in Seoul over one year",
+  "known_missingness": null
+}

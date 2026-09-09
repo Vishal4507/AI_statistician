@@ -1,0 +1,11 @@
+{
+  "observational_unit": "patient",
+  "sampling_unit": "patient",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": "clinic_id",
+  "randomized": false,
+  "intended_population": "clinic patients",
+  "known_missingness": null
+}

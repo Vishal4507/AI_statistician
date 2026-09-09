@@ -1,0 +1,38 @@
+{
+  "case_id": "syn_chi_square_1",
+  "values": {
+    "conf_level": 0.95,
+    "observed[0][0]": 92.0,
+    "observed[0][1]": 65.0,
+    "observed[0][2]": 51.0,
+    "observed[1][0]": 58.0,
+    "observed[1][1]": 80.0,
+    "observed[1][2]": 74.0,
+    "total_n": 420.0,
+    "n_rows": 2.0,
+    "n_cols": 3.0,
+    "statistic": 13.45351584004804,
+    "p_value": 0.0011984120142326973,
+    "df": 2.0,
+    "expected[0][0]": 74.2857,
+    "expected[0][1]": 71.8095,
+    "expected[0][2]": 61.9048,
+    "expected[1][0]": 75.7143,
+    "expected[1][1]": 73.1905,
+    "expected[1][2]": 63.0952,
+    "min_expected": 61.904761904761905,
+    "n_cells_expected_lt_5": 0.0,
+    "effect_size.value": 0.17897536302950456,
+    "effect_size.ci_low": 0.07296631760845605,
+    "effect_size.ci_high": 0.26917777941177645,
+    "effect_size.conf_level": 0.95,
+    "estimate": 0.17897536302950456
+  },
+  "tool": "run_categorical_or_correlation",
+  "args": {
+    "method": "chi_square",
+    "var1": "channel",
+    "var2": "enquiry_outcome"
+  },
+  "default_rtol": 1e-06
+}

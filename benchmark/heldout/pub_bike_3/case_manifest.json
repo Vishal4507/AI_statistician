@@ -1,0 +1,26 @@
+{
+  "case_id": "pub_bike_3",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "Rented Bike Count": "outcome",
+    "Seasons": "group",
+    "Date_Hour": "context",
+    "Hour": "context",
+    "Holiday": "context",
+    "Temperature": "context",
+    "Humidity": "context",
+    "Rainfall": "context"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "seoul_bike",
+  "source_doi": "10.24432/C5F62R",
+  "n_rows": 2400,
+  "data_sha256": "d7b940e2f185f90b2069ec44bdb8ae85c0b7cd13b81d3f068623e731a9543831",
+  "source_url": "https://archive.ics.uci.edu/dataset/560",
+  "source_license": "CC BY 4.0"
+}

@@ -1,0 +1,16 @@
+{
+  "primary_method": "abstain",
+  "accepted_methods": [
+    "abstain"
+  ],
+  "required_checks": [
+    "design_validity"
+  ],
+  "abstain_reason": "missing_design_facts",
+  "expected_hazards": [
+    "missing_design_facts"
+  ],
+  "interpretation_constraints": [],
+  "rationale": "The design card does not state the observational unit or whether readings repeat; independence cannot be established.",
+  "case_id": "syn_abstain_missing_design_facts_8"
+}

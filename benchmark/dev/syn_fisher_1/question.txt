@@ -1,0 +1,3 @@
+Is there an association between site and adverse event?
+
+Analysis objective: test association between two categorical variables

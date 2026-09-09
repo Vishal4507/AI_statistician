@@ -1,0 +1,20 @@
+{
+  "primary_method": "pearson",
+  "accepted_methods": [
+    "pearson",
+    "spearman"
+  ],
+  "required_checks": [
+    "scale",
+    "linearity_or_monotonicity",
+    "influential_points",
+    "range"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "association, not causation"
+  ],
+  "rationale": "Roughly linear relationship without dominant points; Pearson is appropriate and Spearman is defensible.",
+  "case_id": "syn_pearson_1"
+}

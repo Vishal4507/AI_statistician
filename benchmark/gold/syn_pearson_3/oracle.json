@@ -1,0 +1,24 @@
+{
+  "case_id": "syn_pearson_3",
+  "values": {
+    "conf_level": 0.95,
+    "n": 200.0,
+    "estimate": 0.7173459724944434,
+    "statistic": 0.7173459724944434,
+    "p_value": 6.614390621578684e-33,
+    "ci_low": 0.6425554907120287,
+    "ci_high": 0.7785968918610848,
+    "r_squared": 0.5145852442539988,
+    "effect_size.value": 0.7173459724944434,
+    "effect_size.ci_low": 0.6425554907120287,
+    "effect_size.ci_high": 0.7785968918610848,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_categorical_or_correlation",
+  "args": {
+    "method": "pearson",
+    "var1": "advertising_spend",
+    "var2": "weekly_revenue"
+  },
+  "default_rtol": 1e-06
+}

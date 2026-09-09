@@ -1,0 +1,20 @@
+{
+  "primary_method": "chi_square",
+  "accepted_methods": [
+    "chi_square"
+  ],
+  "required_checks": [
+    "independence",
+    "independent_counts",
+    "expected_cell_counts",
+    "table_dimension"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation",
+    "association, not individual risk"
+  ],
+  "rationale": "3x2 table, min expected 6.4, 0 cells below 5",
+  "case_id": "pub_shoppers_2"
+}

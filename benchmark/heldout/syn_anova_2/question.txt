@@ -1,0 +1,3 @@
+Does average satisfaction score differ across the 4 segments? If so, how large is the spread between them?
+
+Analysis objective: compare three or more independent groups

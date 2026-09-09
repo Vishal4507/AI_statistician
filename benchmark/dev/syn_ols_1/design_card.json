@@ -1,0 +1,11 @@
+{
+  "observational_unit": "observation",
+  "sampling_unit": "observation",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "sampled units",
+  "known_missingness": null
+}

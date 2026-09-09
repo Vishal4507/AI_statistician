@@ -1,0 +1,3 @@
+What explains variation in the number of bikes rented?
+
+Analysis objective: model a count outcome

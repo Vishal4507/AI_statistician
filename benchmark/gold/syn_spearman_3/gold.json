@@ -1,0 +1,19 @@
+{
+  "primary_method": "spearman",
+  "accepted_methods": [
+    "spearman"
+  ],
+  "required_checks": [
+    "scale",
+    "linearity_or_monotonicity",
+    "influential_points",
+    "range"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "report influence sensitivity"
+  ],
+  "rationale": "Influential contaminating points dominate the product-moment correlation; the rank measure is stable.",
+  "case_id": "syn_spearman_3"
+}

@@ -1,0 +1,3 @@
+Is there an association between acquisition channel and enquiry outcome?
+
+Analysis objective: test association between two categorical variables

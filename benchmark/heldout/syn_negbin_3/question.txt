@@ -1,0 +1,3 @@
+What explains variation in the number of incidents? Quantify the association with each predictor.
+
+Analysis objective: model a count outcome

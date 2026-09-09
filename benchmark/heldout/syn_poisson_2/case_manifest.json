@@ -1,0 +1,19 @@
+{
+  "case_id": "syn_poisson_2",
+  "family": "count_model",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "support_tickets": "outcome",
+    "predictor_a": "predictor",
+    "observation_days": "exposure"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1259,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 320,
+  "data_sha256": "df5394c05c7a4e002c132d5f093cf62aeab3867bdf324a7a1b0a0407af0cff9a"
+}

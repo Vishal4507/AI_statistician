@@ -1,0 +1,11 @@
+{
+  "observational_unit": "browsing session",
+  "sampling_unit": "browsing session",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "sessions on the retailer's site over one year",
+  "known_missingness": "source states each session belongs to a different user"
+}

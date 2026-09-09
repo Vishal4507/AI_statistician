@@ -1,0 +1,18 @@
+{
+  "case_id": "syn_welch_anova_3",
+  "family": "multi_group",
+  "origin": "synthetic",
+  "split": "heldout",
+  "variable_roles": {
+    "handling_time": "outcome",
+    "tier": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": 1105,
+  "source": null,
+  "source_doi": null,
+  "n_rows": 170,
+  "data_sha256": "da20bb695a9be47a87b27fc1ddf24d589c1297a63908fb1bb191afacb975a61c"
+}

@@ -1,0 +1,20 @@
+{
+  "case_id": "pub_student_2",
+  "family": "public",
+  "origin": "public",
+  "split": "heldout",
+  "variable_roles": {
+    "G3": "outcome",
+    "Mjob": "group"
+  },
+  "allowed_preprocessing": [
+    "drop rows with missing values in analysis columns"
+  ],
+  "seed": null,
+  "source": "student_performance",
+  "source_doi": "10.24432/C5TG7T",
+  "n_rows": 649,
+  "data_sha256": "cc960d0a526afa9cf36b5f89a539ee8c4f711ca644c2f7e70040365ddc14932c",
+  "source_url": "https://archive.ics.uci.edu/dataset/320",
+  "source_license": "CC BY 4.0"
+}

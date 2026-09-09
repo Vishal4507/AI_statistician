@@ -1,0 +1,34 @@
+{
+  "case_id": "syn_mann_whitney_2",
+  "values": {
+    "group_ns[0]": 55.0,
+    "group_ns[1]": 62.0,
+    "group_means[0]": 1.1605032967934643,
+    "group_means[1]": 1.9578537619062373,
+    "group_sds[0]": 0.88456991411427,
+    "group_sds[1]": 1.6639472503144372,
+    "group_medians[0]": 1.1370646455677165,
+    "group_medians[1]": 1.4489980856549254,
+    "total_n": 117.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -0.797350465112773,
+    "se": 0.2426590168197984,
+    "ci_low": -1.2790798066697668,
+    "ci_high": -0.3156211235557792,
+    "statistic": -3.2858884683642122,
+    "p_value": 0.0014242966310047157,
+    "df": 95.14877306459283,
+    "effect_size.value": -0.5983807841619608,
+    "effect_size.ci_low": -0.969573494287949,
+    "effect_size.ci_high": -0.22718807403597263,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "welch_t",
+    "outcome": "session_duration",
+    "group": "cohort"
+  },
+  "default_rtol": 1e-06
+}

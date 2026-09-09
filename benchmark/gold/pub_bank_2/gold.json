@@ -1,0 +1,21 @@
+{
+  "primary_method": "logistic",
+  "accepted_methods": [
+    "logistic"
+  ],
+  "required_checks": [
+    "independence",
+    "binary_coding",
+    "events_per_parameter",
+    "separation",
+    "collinearity"
+  ],
+  "abstain_reason": null,
+  "expected_hazards": [],
+  "interpretation_constraints": [
+    "observational data: association, not causation",
+    "report odds ratios, not probability changes"
+  ],
+  "rationale": "",
+  "case_id": "pub_bank_2"
+}

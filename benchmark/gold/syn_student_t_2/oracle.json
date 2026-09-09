@@ -1,0 +1,34 @@
+{
+  "case_id": "syn_student_t_2",
+  "values": {
+    "group_ns[0]": 45.0,
+    "group_ns[1]": 45.0,
+    "group_means[0]": 0.031480520783035176,
+    "group_means[1]": 0.6682793712094482,
+    "group_sds[0]": 1.0034145413426967,
+    "group_sds[1]": 1.0038142832265518,
+    "group_medians[0]": 0.21438132450192854,
+    "group_medians[1]": 0.737801986210967,
+    "total_n": 90.0,
+    "n_groups": 2.0,
+    "conf_level": 0.95,
+    "estimate": -0.636798850426413,
+    "se": 0.21158049988847746,
+    "ci_low": -1.0572706334506967,
+    "ci_high": -0.21632706740212948,
+    "statistic": -3.0097237257784393,
+    "p_value": 0.0034109514467674023,
+    "df": 88.0,
+    "effect_size.value": -0.6290823497160777,
+    "effect_size.ci_low": -1.0474267000893664,
+    "effect_size.ci_high": -0.20733502909497614,
+    "effect_size.conf_level": 0.95
+  },
+  "tool": "run_group_test",
+  "args": {
+    "method": "student_t",
+    "outcome": "response_score",
+    "group": "arm"
+  },
+  "default_rtol": 1e-06
+}

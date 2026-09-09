@@ -1,0 +1,11 @@
+{
+  "observational_unit": "site",
+  "sampling_unit": "site",
+  "repeated_id_column": null,
+  "time_column": null,
+  "pairing": false,
+  "clustering_column": null,
+  "randomized": false,
+  "intended_population": "monitored sites",
+  "known_missingness": null
+}

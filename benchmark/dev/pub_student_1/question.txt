@@ -1,0 +1,3 @@
+Do male and female students differ in final grade?
+
+Analysis objective: compare two independent groups on a continuous outcome
