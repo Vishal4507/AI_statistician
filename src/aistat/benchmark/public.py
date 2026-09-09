@@ -126,16 +126,27 @@ def _derive_gold(spec: dict, df: pd.DataFrame) -> dict:
 
     if spec["recipe"] in ("two_group", "two_group_mean"):
         a = diagnostics.check_group_assumptions(df, v["outcome"], v["group"])
-        s = diagnostics.summarize_groups(df, v["outcome"], v["group"])
+        s_ = diagnostics.summarize_groups(df, v["outcome"], v["group"])
         checks += ["group_sizes", "variance_structure", "skew_and_outliers"]
         rationale = (f"variance ratio {a.get('variance_ratio', float('nan')):.2f}, "
                      f"group sizes {a.get('group_ns')}, "
-                     f"max |skew| {s.get('max_abs_skew', float('nan')):.2f}")
+                     f"max |skew| {s_.get('max_abs_skew', float('nan')):.2f}")
         if expected == "mann_whitney":
             accepted = ["mann_whitney"]
             constraints.append("describe stochastic ordering, not medians")
         else:
             accepted = ["welch_t"]
+            # Blueprint section 2: Student requires an affirmative equal-variance
+            # justification. When variances, group sizes and skew are all mild,
+            # that justification exists and both choices are defensible -- an
+            # ambiguous case does not get a brittle label (section 4.3).
+            vr = a.get("variance_ratio", 99.0)
+            gr = a.get("group_size_ratio", 99.0)
+            sk = s_.get("max_abs_skew", 99.0)
+            if vr < 1.5 and gr < 1.5 and sk < 1.5:
+                accepted = ["welch_t", "student_t"]
+                rationale += " (mild on all three axes: Student is affirmatively "
+                rationale += "justified and Welch remains defensible)"
     elif spec["recipe"] == "multi_group":
         a = diagnostics.check_group_assumptions(df, v["outcome"], v["group"])
         sm = diagnostics.summarize_groups(df, v["outcome"], v["group"])

@@ -15,6 +15,6 @@
     "observational data: association, not causation",
     "describe stochastic ordering, not medians"
   ],
-  "rationale": "variance ratio 4.42, group sizes [2615, 385], max |skew| 2.81",
+  "rationale": "variance ratio 3.87, group sizes [2644, 356], max |skew| 4.59",
   "case_id": "pub_bank_3"
 }

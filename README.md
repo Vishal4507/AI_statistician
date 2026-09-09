@@ -67,7 +67,9 @@ make demo
 | `src/aistat/agents/` | Decision policy, trace log, and the three system drivers |
 | `src/aistat/evaluation/` | Resumable runner, scorers, bootstrap and McNemar analysis |
 | `benchmark/` | 64 case packages; gold and oracles in a separate tree |
+| `src/aistat/evaluation/blinded.py` | Blinded human interpretation scoring |
 | `app/` | Streamlit demo |
+| `docs/CAPSTONE_REPORT.md` | Generated capstone report |
 
 ## The three systems
 
@@ -154,10 +156,38 @@ expert one is not — it scores 60% with zero abstention recall *even inside the
 state machine*, which shows the architecture alone is not what produces the
 uplift. The decision policy inside it is.
 
+## The two things that need a human, not a key
+
+**Blinded interpretation scoring** (§8.2 metric 5, §8.3). The blueprint requires a
+0-2 rubric applied by a scorer blind to system identity, with ≥20% double-scored
+and agreement reported. No API key substitutes for that judgement. The instrument
+is built:
+
+```bash
+make blind RUN=heldout_claude-opus-5   # prepares packet, sheet, sealed key
+# a human scores reports/blinded/scores_blank.csv
+make blind-ingest                      # joins to the key, reports kappa
+```
+
+Reports are shuffled, system identity is stripped (and the seams tidied, so
+edited reports are not identifiable), and repeats are shuffled in so inter-rater
+agreement can be computed.
+
+**Label audit** (§4.3). A solo build cannot supply a second reviewer. `make audit`
+re-derives every label from the case package alone, without reading gold, and
+reports disagreements. It currently agrees on 64/64 with all 12 abstention
+reasons matched — but it is **not independent review**: the same author wrote the
+labelling logic and the audit, so it catches internal inconsistency, not shared
+misconception. That caveat ships inside `reports/label_audit.json`.
+
+It has already earned its place, finding two real defects: a policy ordering bug
+where extreme skew was checked after the variance branch, and a brittle
+single-method label on a case where two methods were defensible.
+
 ## Testing
 
 ```bash
-make test     # 133 tests
+make test     # 160 tests
 ```
 
 At least two numerical tests per method, checked against values that are

@@ -15,6 +15,6 @@
     "observational data: association, not causation",
     "association, not individual risk"
   ],
-  "rationale": "2x2 table, min expected 50.4, 0 cells below 5",
+  "rationale": "2x2 table, min expected 52.2, 0 cells below 5",
   "case_id": "pub_bank_1"
 }

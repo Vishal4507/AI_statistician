@@ -25,6 +25,9 @@ help:
 	@echo "  make pilot      two-tier headroom check (run BEFORE freezing prompts)"
 	@echo "  make analyze    rebuild every result table from raw logs"
 	@echo "  make report     regenerate the capstone results document"
+	@echo "  make capstone   regenerate the full capstone report"
+	@echo "  make audit      independent label audit (no API key needed)"
+	@echo "  make blind      prepare a blinded interpretation-scoring packet"
 	@echo "  make demo       launch the Streamlit demo"
 	@echo "  make all        data -> benchmark -> validate -> test -> eval -> analyze"
 
@@ -76,10 +79,25 @@ analyze:
 report:
 	$(PY) scripts/write_report.py --name heldout_rulebased_expert
 
+capstone:
+	$(PY) scripts/write_capstone.py
+
+audit:
+	$(PY) scripts/audit_labels.py
+
+# RUN defaults to the offline calibration set; point it at a live run once one
+# exists, e.g. make blind RUN=heldout_claude-opus-5
+RUN ?= heldout_rulebased_expert
+blind:
+	$(PY) scripts/score_blinded.py --prepare $(RUN)
+
+blind-ingest:
+	$(PY) scripts/score_blinded.py --ingest reports/blinded/scores_blank.csv
+
 demo:
 	$(PY) -m streamlit run app/streamlit_app.py
 
 clean-results:
 	rm -f results/*.jsonl results/*_manifest.json reports/*.csv reports/*_results.json
 
-all: data benchmark validate test eval analyze report
+all: data benchmark validate test audit eval analyze report capstone

@@ -179,6 +179,18 @@ def route(task: TaskShape, evidence: dict, question: str = "",
             if a.get("levene_p", 1.0) < 0.05:
                 return "welch_t", "Levene test rejected equal variances.", rej
             return "student_t", "Levene test did not reject equal variances.", rej
+        # Extreme skew is checked BEFORE the variance branch. Under a skew of
+        # this magnitude the mean is not a meaningful summary of either group,
+        # so a Welch correction to a comparison of means answers the wrong
+        # question -- the variance ratio is beside the point. Found by
+        # scripts/audit_labels.py on pub_shoppers_1 (skew 5.23).
+        if skew > 2.5:
+            rej["welch_t"] = ("the outcome is too skewed for a mean difference to "
+                              "summarise either group")
+            rej["student_t"] = "pronounced skew with influential observations"
+            return ("mann_whitney",
+                    f"Max absolute skew of {R('summary', 'max_abs_skew')} dominates "
+                    "the mean; the rank test targets stochastic ordering.", rej)
         if skew > 1.5 and shift:
             rej["welch_t"] = "estimand is a distributional shift, not a mean difference"
             return ("mann_whitney",
@@ -193,11 +205,6 @@ def route(task: TaskShape, evidence: dict, question: str = "",
                     f"Variance ratio {R('assumptions', 'variance_ratio')} with group "
                     f"size ratio {R('assumptions', 'group_size_ratio')}; Welch is the "
                     "default under either condition.", rej)
-        if skew > 2.5:
-            rej["student_t"] = "pronounced skew with influential observations"
-            return ("mann_whitney",
-                    f"Max absolute skew of {R('summary', 'max_abs_skew')} dominates "
-                    "the mean.", rej)
         rej["mann_whitney"] = "no skew or variance problem requiring a rank test"
         return ("student_t",
                 f"Balanced groups with a size ratio of "

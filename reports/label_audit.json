@@ -1,0 +1,11 @@
+{
+  "n_cases": 64,
+  "n_agree": 64,
+  "agreement_rate": 1.0,
+  "by_origin": {
+    "public": 1.0,
+    "synthetic": 1.0
+  },
+  "disagreements": [],
+  "caveat": "Not independent review -- the same author wrote both the labelling logic and this audit. Catches internal inconsistency, not shared misconception."
+}

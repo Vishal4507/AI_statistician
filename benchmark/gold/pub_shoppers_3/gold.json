@@ -16,6 +16,6 @@
     "observational data: association, not causation",
     "report sensitivity to influential points"
   ],
-  "rationale": "Pearson 0.914 vs Spearman 0.613, quadratic gain 0.005, 252 high-leverage points",
+  "rationale": "Pearson 0.906 vs Spearman 0.604, quadratic gain 0.005, 237 high-leverage points",
   "case_id": "pub_shoppers_3"
 }

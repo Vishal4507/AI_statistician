@@ -1,7 +1,8 @@
 {
   "primary_method": "welch_t",
   "accepted_methods": [
-    "welch_t"
+    "welch_t",
+    "student_t"
   ],
   "required_checks": [
     "independence",
@@ -14,6 +15,6 @@
   "interpretation_constraints": [
     "observational data: association, not causation"
   ],
-  "rationale": "variance ratio 1.13, group sizes [383, 266], max |skew| 0.97",
+  "rationale": "variance ratio 1.13, group sizes [383, 266], max |skew| 0.97 (mild on all three axes: Student is affirmatively justified and Welch remains defensible)",
   "case_id": "pub_student_1"
 }
