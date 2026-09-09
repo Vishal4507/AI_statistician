@@ -8,7 +8,7 @@ export PYTHONPATH := src
 -include .env
 export
 
-.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live pilot analyze report demo site clean-results all
+.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live pilot analyze report demo site artifact clean-results all
 
 help:
 	@echo "AI Statistician"
@@ -30,6 +30,7 @@ help:
 	@echo "  make blind      prepare a blinded interpretation-scoring packet"
 	@echo "  make demo       launch the Streamlit demo (live analysis, local)"
 	@echo "  make site       export the static explorer for Netlify"
+	@echo "  make artifact   bundle the explorer into one self-contained page"
 	@echo "  make all        data -> benchmark -> validate -> test -> eval -> analyze"
 
 setup:
@@ -102,6 +103,10 @@ demo:
 site:
 	$(PY) scripts/export_site.py
 	@echo "  serve locally: python3 -m http.server 8910 --directory site"
+
+# One self-contained page -- no host that serves multiple files required.
+artifact: site
+	$(PY) scripts/build_artifact.py
 
 clean-results:
 	rm -f results/*.jsonl results/*_manifest.json reports/*.csv reports/*_results.json

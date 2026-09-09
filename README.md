@@ -53,8 +53,9 @@ rather than post-hoc.
 For the demo:
 
 ```bash
-make demo    # Streamlit, local, runs live analysis on an uploaded CSV
-make site    # static explorer, deployable to Netlify
+make demo      # Streamlit, local, runs live analysis on an uploaded CSV
+make site      # static explorer, deployable to Netlify
+make artifact  # the same explorer as one self-contained file
 ```
 
 **Two front ends, deliberately.** The Streamlit app runs the real analysis path and
@@ -64,7 +65,9 @@ every rendered report, every trace — with no backend at all, so it deploys any
 Netlify cannot host the analysis path: SciPy, statsmodels, NumPy and pandas total
 ~321 MB against a 250 MB Lambda ceiling, and reimplementing the statistics in
 JavaScript would destroy the premise that validated libraries perform every numerical
-operation. `netlify.toml` publishes `site/` with no build step.
+operation. `netlify.toml` publishes `site/` with no build step. `make artifact` collapses the
+same explorer into a single 833 KB HTML file with the data, styles and script
+inlined, for anywhere that accepts one file and no build.
 
 ## What is here
 
