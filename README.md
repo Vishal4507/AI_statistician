@@ -53,8 +53,18 @@ rather than post-hoc.
 For the demo:
 
 ```bash
-make demo
+make demo    # Streamlit, local, runs live analysis on an uploaded CSV
+make site    # static explorer, deployable to Netlify
 ```
+
+**Two front ends, deliberately.** The Streamlit app runs the real analysis path and
+needs Python. The static explorer serves everything already computed — all 64 cases,
+every rendered report, every trace — with no backend at all, so it deploys anywhere.
+
+Netlify cannot host the analysis path: SciPy, statsmodels, NumPy and pandas total
+~321 MB against a 250 MB Lambda ceiling, and reimplementing the statistics in
+JavaScript would destroy the premise that validated libraries perform every numerical
+operation. `netlify.toml` publishes `site/` with no build step.
 
 ## What is here
 
@@ -187,7 +197,7 @@ single-method label on a case where two methods were defensible.
 ## Testing
 
 ```bash
-make test     # 160 tests
+make test     # 168 tests
 ```
 
 At least two numerical tests per method, checked against values that are

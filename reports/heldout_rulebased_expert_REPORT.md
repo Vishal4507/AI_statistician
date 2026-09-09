@@ -1,6 +1,6 @@
 # AI Statistician — results
 
-Generated 2026-08-28 13:07 UTC from
+Generated 2026-09-09 12:16 UTC from
 `results/heldout_rulebased_expert_scores.jsonl`. Regenerate with `make analyze`.
 
 > **This is a calibration run, not an experiment.**
@@ -24,7 +24,7 @@ Generated 2026-08-28 13:07 UTC from
 | Repetitions | 3 |
 | Total runs | 432 |
 | Prompt hash | `7ba9f7108937e6f9` |
-| Git commit | `aa6e27cec303` |
+| Git commit | `93840ac0072c` |
 | Determinism controls | pinned model id, fixed effort, frozen prompt hash, n repetitions |
 | Library versions | numpy 1.26.3, pandas 2.1.4, scipy 1.13.1, statsmodels 0.14.2 |
 

@@ -69,6 +69,19 @@ _TIDY = [
 SECTIONS = ("problem_statement", "data_audit", "method_decision", "results",
             "interpretation", "limitations")
 
+REPEAT_SUFFIX = "-r2"
+"""Marks the second presentation of a double-scored report.
+
+Item ids are hex, so a suffix of "b" collides with originals that legitimately
+end in b -- and stripping it would silently mis-pair scores and corrupt the
+agreement statistic. A hyphen cannot occur in hex.
+"""
+
+
+def base_id(item_id: str) -> str:
+    """The original id behind a presentation, repeat or not."""
+    return item_id.split(REPEAT_SUFFIX)[0]
+
 
 def blind(text: str) -> str:
     """Remove identifying phrasing without altering substantive content.
@@ -145,9 +158,9 @@ class Session:
         n_double = max(1, int(len(items) * double_fraction))
         repeats = rng.sample(items, min(n_double, len(items)))
         for item in repeats:
-            items.append(Item(item_id=item.item_id + "b", case_id=item.case_id,
-                              system=item.system, run_id=item.run_id,
-                              sections=item.sections))
+            items.append(Item(item_id=item.item_id + REPEAT_SUFFIX,
+                              case_id=item.case_id, system=item.system,
+                              run_id=item.run_id, sections=item.sections))
         rng.shuffle(items)
         return cls(items=items, double_fraction=double_fraction, seed=seed)
 
@@ -211,7 +224,7 @@ def ingest(scores_csv: Path, key_json: Path) -> dict:
 
     scores["system"] = scores["item_id"].map(lambda i: key.get(i, {}).get("system"))
     scores["case_id"] = scores["item_id"].map(lambda i: key.get(i, {}).get("case_id"))
-    scores["base_id"] = scores["item_id"].str.rstrip("b")
+    scores["base_id"] = scores["item_id"].map(base_id)
 
     per_system = (scores.groupby("system")["score"]
                   .agg(n="size", mean="mean", full_support=lambda s: (s == 2).mean(),

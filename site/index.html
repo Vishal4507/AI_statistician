@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Statistician — benchmark explorer</title>
+<meta name="description" content="Explore the 64-case statistical benchmark, the three system variants, and every rendered report and trace.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Capstone artefact · static explorer</p>
+    <h1>AI Statistician</h1>
+    <p class="standfirst">LLM-guided selection, validation, execution and interpretation
+      of statistical methods. Every number in every report below was substituted from a
+      recorded tool result — the model could not write one.</p>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-view="overview" role="tab">Overview</button>
+      <button class="tab" data-view="results" role="tab">Results</button>
+      <button class="tab" data-view="cases" role="tab">Benchmark</button>
+      <button class="tab" data-view="reports" role="tab">Reports &amp; traces</button>
+      <button class="tab" data-view="methods" role="tab">Method library</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="app">
+  <p class="loading">Loading…</p>
+</main>
+
+<footer class="wrap">
+  <p>Static export. The live analysis path runs locally — SciPy and statsmodels
+     total ~321&nbsp;MB and cannot run in a serverless function, which is why the
+     statistics are computed ahead of time rather than reimplemented in JavaScript.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

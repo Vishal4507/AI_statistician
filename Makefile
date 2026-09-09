@@ -8,7 +8,7 @@ export PYTHONPATH := src
 -include .env
 export
 
-.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live pilot analyze report demo clean-results all
+.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live pilot analyze report demo site clean-results all
 
 help:
 	@echo "AI Statistician"
@@ -28,7 +28,8 @@ help:
 	@echo "  make capstone   regenerate the full capstone report"
 	@echo "  make audit      independent label audit (no API key needed)"
 	@echo "  make blind      prepare a blinded interpretation-scoring packet"
-	@echo "  make demo       launch the Streamlit demo"
+	@echo "  make demo       launch the Streamlit demo (live analysis, local)"
+	@echo "  make site       export the static explorer for Netlify"
 	@echo "  make all        data -> benchmark -> validate -> test -> eval -> analyze"
 
 setup:
@@ -96,6 +97,11 @@ blind-ingest:
 
 demo:
 	$(PY) -m streamlit run app/streamlit_app.py
+
+# Static explorer -- no backend, deployable to Netlify (see netlify.toml).
+site:
+	$(PY) scripts/export_site.py
+	@echo "  serve locally: python3 -m http.server 8910 --directory site"
 
 clean-results:
 	rm -f results/*.jsonl results/*_manifest.json reports/*.csv reports/*_results.json

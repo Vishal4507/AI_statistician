@@ -56,19 +56,30 @@ def test_item_presentation_contains_no_identity():
 
 
 def test_session_shuffles_and_adds_double_scored_repeats(tmp_path):
-    session = Session.from_runs("regress_check", double_fraction=0.2, limit=10)
+    session = Session.from_runs("heldout_rulebased_expert", double_fraction=0.2, limit=10)
+    from aistat.evaluation.blinded import REPEAT_SUFFIX, base_id
     ids = [i.item_id for i in session.items]
     assert len(ids) > 10                        # repeats were added
-    repeats = [i for i in ids if i.endswith("b")]
+    repeats = [i for i in ids if i.endswith(REPEAT_SUFFIX)]
     assert repeats, "no double-scored items"
     for r in repeats:
-        assert r[:-1] in ids, "a repeat has no original"
+        assert base_id(r) in ids, "a repeat has no original"
+
+
+def test_repeat_suffix_cannot_collide_with_a_hex_item_id():
+    """Item ids are hex; a suffix of 'b' would mangle originals ending in b."""
+    from aistat.evaluation.blinded import REPEAT_SUFFIX, base_id
+    # The suffix needs at least one character hex cannot produce, so it can
+    # never be mistaken for part of an id.
+    assert any(c not in "0123456789abcdef" for c in REPEAT_SUFFIX)
+    assert base_id("Rabbbbbbb") == "Rabbbbbbb"          # original survives
+    assert base_id("Rabbbbbbb" + REPEAT_SUFFIX) == "Rabbbbbbb"
 
 
 def test_packet_key_and_sheet_round_trip(tmp_path):
     # Enough items that the double-scored subset supports an agreement
     # statistic -- ingest needs at least two complete pairs.
-    session = Session.from_runs("regress_check", limit=40)
+    session = Session.from_runs("heldout_rulebased_expert", limit=40)
     packet, sheet, key = session.write_packet(tmp_path)
 
     text = packet.read_text()
@@ -98,7 +109,7 @@ def test_packet_key_and_sheet_round_trip(tmp_path):
 
 
 def test_ingest_rejects_an_unscored_sheet(tmp_path):
-    session = Session.from_runs("regress_check", limit=4)
+    session = Session.from_runs("heldout_rulebased_expert", limit=4)
     _, sheet, key = session.write_packet(tmp_path)
     with pytest.raises(ValueError):
         ingest(sheet, key)

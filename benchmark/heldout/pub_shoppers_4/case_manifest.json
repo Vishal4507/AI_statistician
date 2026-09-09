@@ -15,7 +15,7 @@
   "source": "online_shoppers",
   "source_doi": "10.24432/C5F88Q",
   "n_rows": 5000,
-  "data_sha256": "4dec0ca1293feffe4356b1080b5eb77fd70204b6ec0d8c7d0f25f2ff64712785",
+  "data_sha256": "8315ff26ffa7c8a7e5b30d78ba0a3dfe299c0d2ded0229b7ba4d8300bb51c5cc",
   "source_url": "https://archive.ics.uci.edu/dataset/468",
   "source_license": "CC BY 4.0"
 }

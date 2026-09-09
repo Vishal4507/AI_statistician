@@ -1,0 +1,22 @@
+# Static deploy. No build step and no Python: SciPy, statsmodels, NumPy and
+# pandas total ~321 MB against a 250 MB Lambda ceiling, and reimplementing the
+# statistics in JavaScript would destroy the premise that validated libraries
+# perform every numerical operation. The site serves what the system already
+# computed; live analysis runs locally via `make demo`.
+#
+# Regenerate the data bundle with:  python scripts/export_site.py
+[build]
+  publish = "site"
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+
+[[headers]]
+  for = "/data/*.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

@@ -170,3 +170,87 @@ def test_report_validator_passes_a_clean_report():
         "interpretation": {"text": "Observational, so association only."},
         "limitations": {"text": "Applies to the sampled population."},
     }, s) is None
+
+
+# ==========================================================================
+# Templates that no pattern matched
+# ==========================================================================
+#
+# Found by the static explorer, not by these tests: 6 of 2,010 rendered report
+# sections contained a template emitted verbatim. Two causes, one hole -- a
+# reference the pattern could not express silently survived rendering, which is
+# worse than failing, because the report looks finished and contains a
+# placeholder where a statistic should be.
+
+def test_reference_containing_spaces_resolves():
+    """UCI column names contain spaces; the store keys them faithfully."""
+    s = ResultStore()
+    cid = s.next_call_id("inspect_dataset")
+    s.register(cid, {"columns": {"Rented Bike Count": {"mean": 704.6}}})
+    key = f"{cid}.columns.Rented Bike Count.mean"
+    assert key in s.keys()
+    assert "704.6" in s.render(f"Mean {{{{{key}}}}}")
+
+
+@pytest.mark.parametrize("malformed", [
+    "{{r4.welch_t.group_sds[0])}}",     # stray paren the model wrote
+    "{{ spaced.ref }}",                 # padded
+    "{{totally.invented}}",             # plausible but absent
+])
+def test_malformed_or_unknown_templates_are_blocked_not_emitted(malformed):
+    s = ResultStore()
+    s.register("r1.welch_t", {"p_value": 0.03})
+    with pytest.raises(ProvenanceError):
+        s.render(malformed)
+
+
+def test_unclosed_template_cannot_survive_rendering():
+    s = ResultStore()
+    s.register("r1.t", {"p_value": 0.03})
+    with pytest.raises(ProvenanceError):
+        s.render("p was {{r1.t.p_value and then {{ broken")
+
+
+def test_non_strict_render_marks_residue_rather_than_emitting_it():
+    s = ResultStore()
+    out = s.render("value {{unmatchable", strict=False)
+    assert "{{" not in out
+    assert "UNRESOLVED" in out
+    assert s.rejection_count == 1
+
+
+# Live captures recorded BEFORE the pattern was widened. They are retained as
+# evidence of the defect rather than deleted, and cannot be regenerated without
+# API credit. Everything the current code produces must be clean.
+PRE_FIX_CAPTURES = {"dev_claude-opus-5_high.jsonl",
+                    "dev_claude-opus-5_medium.jsonl"}
+
+
+def test_no_rendered_report_on_disk_contains_a_surviving_template():
+    """Guards the whole corpus, not just a constructed example.
+
+    This is the test the constructed cases above could not be: the hole was
+    found in real output, by browsing 2,010 rendered sections, after every
+    unit test passed.
+    """
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    checked = bad = 0
+    offenders = []
+    for f in (root / "results").glob("*.jsonl"):
+        if "scores" in f.name or "traces" in f.name:
+            continue
+        if f.name in PRE_FIX_CAPTURES:
+            continue
+        for line in f.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            for section, text in (row.get("rendered") or {}).items():
+                checked += 1
+                if "{{" in str(text) or "UNRESOLVED" in str(text):
+                    bad += 1
+                    offenders.append(f"{f.name}:{row.get('case_id')}:{section}")
+    assert checked > 0, "no rendered reports found to check"
+    assert bad == 0, f"{bad} of {checked} kept a template: {offenders[:5]}"

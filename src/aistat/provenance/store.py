@@ -14,6 +14,7 @@ not exist.
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -175,7 +176,19 @@ class ResultStore:
                 raise ProvenanceError(ref, len(self._values) + len(self._labels))
             return f"[UNRESOLVED:{ref}]"
 
-        return REF_PATTERN.sub(sub, text)
+        out = REF_PATTERN.sub(sub, text)
+
+        # A template that matched no pattern would otherwise be emitted verbatim.
+        # That is worse than failing: the report looks finished and contains a
+        # placeholder where a statistic should be. Catch any residue explicitly.
+        if "{{" in out or "}}" in out:
+            residue = re.search(r"\{\{.{0,80}|.{0,80}\}\}", out)
+            frag = residue.group(0) if residue else out[:80]
+            self._rejected.append(frag)
+            if strict:
+                raise ProvenanceError(frag, len(self._values) + len(self._labels))
+            out = out.replace("{{", "[UNRESOLVED:").replace("}}", "]")
+        return out
 
     # -- audit -------------------------------------------------------------
 

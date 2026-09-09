@@ -1,5 +1,5 @@
 {
-  "timestamp_utc": "2026-08-28T13:06:21.700174+00:00",
+  "timestamp_utc": "2026-09-09T12:15:47.284693+00:00",
   "client": "rulebased:expert",
   "split": "heldout",
   "reps": 3,
@@ -8,7 +8,7 @@
     "B_tools",
     "C_protocol"
   ],
-  "git_commit": "aa6e27cec303a5ede95ea6982ffaa89830603633",
+  "git_commit": "93840ac0072c1382091d5727c9b928577c14523b",
   "prompt_sha256_16": "7ba9f7108937e6f9",
   "python": "3.12.4",
   "platform": "macOS-10.16-x86_64-i386-64bit",
@@ -30,5 +30,5 @@
   "n_to_run": 432,
   "n_executed": 432,
   "n_errors": 0,
-  "elapsed_seconds": 42.9
+  "elapsed_seconds": 31.1
 }

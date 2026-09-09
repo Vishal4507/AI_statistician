@@ -14,6 +14,6 @@
   "interpretation_constraints": [
     "observational data: association, not causation"
   ],
-  "rationale": "variance ratio 1.70, group sizes [3557, 443], max |skew| 0.94",
+  "rationale": "variance ratio 1.65, group sizes [3550, 450], max |skew| 0.80",
   "case_id": "pub_bank_4"
 }

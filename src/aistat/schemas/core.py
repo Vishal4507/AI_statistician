@@ -245,8 +245,19 @@ class AnalysisResult(BaseModel):
 # Final report -- the provenance-enforcing schema
 # --------------------------------------------------------------------------
 
-REF_PATTERN = re.compile(r"\{\{([A-Za-z0-9_.\[\]-]+)\}\}")
-"""A numeric reference: ``{{r7.welch_t.p_value}}``."""
+REF_PATTERN = re.compile(r"\{\{([^{}]{1,240})\}\}")
+"""A result reference: ``{{r7.welch_t.p_value}}``.
+
+Deliberately permissive. Real store keys contain characters a tight pattern
+would exclude -- a UCI column named "Rented Bike Count" produces the legitimate
+key ``r1.inspect_dataset.columns.Rented Bike Count.mean``. Under a narrower
+pattern that template matched nothing and was emitted verbatim into the report,
+which is the one outcome the provenance contract must never allow.
+
+Anything of the form ``{{...}}`` is therefore treated as a *claim* to be a
+reference. If it resolves, it is substituted; if it does not, it is a
+provenance failure. Nothing passes through unexamined.
+"""
 
 # A bare number in prose.  Deliberately permissive about what is *allowed*:
 # small integers read as counts of groups/variables ("three groups", "2x2")
