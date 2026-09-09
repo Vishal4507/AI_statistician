@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 warnings.filterwarnings("ignore")
 
-from aistat.evaluation.blinded import RUBRIC, Session, ingest
+from aistat.evaluation.blinded import RUBRIC, Session, base_id, ingest
 
 OUT = ROOT / "reports" / "blinded"
 
@@ -45,9 +45,15 @@ def main() -> int:
             print(exc, file=sys.stderr)
             return 2
         packet, sheet, key = session.write_packet(OUT)
-        n_distinct = len({i.item_id.rstrip("b") for i in session.items})
+        n_distinct = len({base_id(i.item_id) for i in session.items})
         print(f"Prepared {len(session.items)} presentations of {n_distinct} "
-              f"distinct reports\n")
+              f"distinct reports")
+        if session.excluded:
+            print(f"  excluded {len(session.excluded)} report(s) carrying an "
+                  "unresolved template -- they cannot be scored fairly and the\n"
+                  "  visible placeholder would break the blinding. Listed in "
+                  "excluded.json; disclose in the write-up.")
+        print()
         print(f"  packet     {packet.relative_to(ROOT)}")
         print(f"  score here {sheet.relative_to(ROOT)}")
         print(f"  sealed key {key.relative_to(ROOT)}  <- do not open until scored")

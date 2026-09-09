@@ -126,6 +126,8 @@ class Session:
     items: list[Item] = field(default_factory=list)
     double_fraction: float = 0.20
     seed: int = 20260909
+    excluded: list[dict] = field(default_factory=list)
+    """Reports withheld from scoring, with the reason. Belongs in the write-up."""
 
     @classmethod
     def from_runs(cls, run_name: str, *, double_fraction: float = 0.20,
@@ -137,6 +139,18 @@ class Session:
 
         rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
         rows = [r for r in rows if not r.get("error") and r.get("rendered")]
+
+        # A report carrying an unresolved template cannot be scored fairly: the
+        # statistic the interpretation rests on is simply absent, so a low score
+        # would record a harness defect rather than a judgement about the prose.
+        # The visible {{...}} is also a cue, which would end the blinding.
+        # Excluded, counted, and reported rather than silently dropped.
+        def _unrenderable(r: dict) -> bool:
+            return any("{{" in str(v) or "UNRESOLVED" in str(v)
+                       for v in (r.get("rendered") or {}).values())
+
+        excluded = [r for r in rows if _unrenderable(r)]
+        rows = [r for r in rows if not _unrenderable(r)]
 
         items = []
         for r in rows:
@@ -162,7 +176,12 @@ class Session:
                               case_id=item.case_id, system=item.system,
                               run_id=item.run_id, sections=item.sections))
         rng.shuffle(items)
-        return cls(items=items, double_fraction=double_fraction, seed=seed)
+        return cls(items=items, double_fraction=double_fraction, seed=seed,
+                   excluded=[{"run_id": r.get("run_id"),
+                              "case_id": r.get("case_id"),
+                              "system": r.get("system"),
+                              "reason": "unresolved template in the rendered report"}
+                             for r in excluded])
 
     # -- export / import ---------------------------------------------------
 
@@ -207,6 +226,10 @@ class Session:
                            "run_id": i.run_id} for i in self.items}
         key_path = out_dir / "KEY_do_not_open_until_scored.json"
         key_path.write_text(json.dumps(key, indent=2))
+
+        if self.excluded:
+            (out_dir / "excluded.json").write_text(
+                json.dumps(self.excluded, indent=2))
 
         return packet_path, sheet_path, key_path
 
