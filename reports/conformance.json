@@ -70,7 +70,7 @@
       "ref": "DoD.2",
       "name": "All methods unit-tested; all cases pass validation",
       "status": "PASS ",
-      "detail": "179 passed in 13.57s",
+      "detail": "189 passed in 14.90s",
       "blocked_on": ""
     },
     {
@@ -84,7 +84,7 @@
       "ref": "DoD.4",
       "name": "Every numerical claim maps to a tool output",
       "status": "PASS ",
-      "detail": "5,184 rendered sections, 0 with an unresolved reference",
+      "detail": "5,190 rendered sections, 0 with an unresolved reference",
       "blocked_on": ""
     },
     {

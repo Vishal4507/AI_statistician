@@ -40,7 +40,7 @@ PRESETS: dict[str, dict[str, str]] = {
     "cerebras": {"base_url": "https://api.cerebras.ai/v1",
                  "env": "CEREBRAS_API_KEY", "model": "llama-3.3-70b"},
     "ollama": {"base_url": "http://localhost:11434/v1",
-               "env": "OLLAMA_API_KEY", "model": "llama3.1:8b"},
+               "env": "OLLAMA_API_KEY", "model": "qwen2.5:7b"},
     "llamacpp": {"base_url": "http://localhost:8080/v1",
                  "env": "LLAMACPP_API_KEY", "model": "local"},
 }
