@@ -79,8 +79,15 @@ def main() -> int:
     out = args.out or default_out
     print(f"AI Statistician evaluation\n  client={args.client} split={args.split} "
           f"reps={args.reps} out={out}")
+    # The offline client has no credential to verify.
+    preflight = args.client not in ("rulebased", "rulebased-naive")
     res = evaluate(factory, split=args.split, reps=args.reps,
-                   systems=args.systems, out_name=out, max_workers=args.workers)
+                   systems=args.systems, out_name=out, max_workers=args.workers,
+                   preflight=preflight)
+    if res.get("preflight_failed"):
+        print("\n  Nothing was run. Fix the credential and try again.",
+              file=sys.stderr)
+        return 2
     print(f"\n  executed {res['n_run']} runs in "
           f"{res.get('elapsed_seconds', 0):.1f}s, {res.get('n_errors', 0)} errors")
     print(f"  scores -> {res.get('scores_path')}")

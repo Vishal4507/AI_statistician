@@ -419,3 +419,79 @@ def test_local_providers_are_detected_by_reachability_not_by_key():
     for name, cfg in PRESETS.items():
         if cfg["base_url"].startswith("http://localhost"):
             assert isinstance(avail[name], bool)
+
+
+# ==========================================================================
+# Resume semantics and pre-flight
+# ==========================================================================
+#
+# A 401 wiped out a 432-run evaluation. Two defects turned one bad credential
+# into a lost evaluation: the runner did not check the credential before
+# committing to hundreds of calls, and it then recorded every failure as
+# "completed", so the retry after fixing the key would have skipped all of them.
+
+def test_errored_runs_are_not_treated_as_completed(tmp_path):
+    import json
+    from aistat.evaluation.runner import _completed
+    p = tmp_path / "runs.jsonl"
+    p.write_text("\n".join(json.dumps(r) for r in [
+        {"system": "C_protocol", "case_id": "c1", "rep": 0},
+        {"system": "C_protocol", "case_id": "c2", "rep": 0,
+         "error": "AuthenticationError: 401"},
+        {"system": "B_tools", "case_id": "c1", "rep": 0, "error": None},
+    ]) + "\n")
+    done = _completed(p)
+    assert "C_protocol|c1|0" in done          # clean run: skip on resume
+    assert "C_protocol|c2|0" not in done      # errored: must be retried
+    assert "B_tools|c1|0" in done             # explicit null error is clean
+
+
+def test_preflight_passes_a_working_client():
+    from aistat.evaluation.runner import verify_credentials
+    from aistat.agents.rulebased import RuleBasedClient
+    ok, detail = verify_credentials(lambda: RuleBasedClient("expert"))
+    assert ok, detail
+
+
+def test_preflight_names_an_auth_failure_rather_than_just_raising():
+    from aistat.evaluation.runner import verify_credentials
+
+    class Rejecting:
+        name = "broken"
+        def complete(self, **kw):
+            raise RuntimeError("Error code: 401 - invalid_api_key")
+
+    ok, detail = verify_credentials(Rejecting)
+    assert ok is False
+    assert "401" in detail
+    assert "gsk_" in detail, "the hint should name the expected key shape"
+
+
+def test_preflight_distinguishes_rate_limiting_from_bad_credentials():
+    from aistat.evaluation.runner import verify_credentials
+
+    class Throttled:
+        name = "throttled"
+        def complete(self, **kw):
+            raise RuntimeError("Error code: 429 - rate limit exceeded")
+
+    ok, detail = verify_credentials(Throttled)
+    assert ok is False
+    assert "workers" in detail, "should advise lowering concurrency"
+
+
+def test_evaluate_runs_nothing_when_preflight_fails(tmp_path, monkeypatch):
+    from aistat.evaluation import runner
+
+    class Rejecting:
+        name = "broken"
+        def complete(self, **kw):
+            raise RuntimeError("Error code: 401 - invalid_api_key")
+
+    monkeypatch.setattr(runner, "RESULTS", tmp_path)
+    res = runner.evaluate(Rejecting, split="dev", reps=1,
+                          out_name="preflight_test", progress=False)
+    assert res["preflight_failed"] is True
+    assert res["n_run"] == 0
+    assert not list(tmp_path.glob("preflight_test*.jsonl")), \
+        "a failed pre-flight must not write partial results"

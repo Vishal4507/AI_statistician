@@ -83,26 +83,71 @@ class RunKey:
 
 
 def _completed(path: Path) -> set[str]:
+    """Runs that need not be repeated.
+
+    A run that errored is NOT complete. Counting it as done meant that after a
+    401 wiped out an entire evaluation, the retry skipped all 432 -- the resume
+    logic turning a transient failure into a permanent one.
+    """
     if not path.exists():
         return set()
     done = set()
     for line in path.read_text().splitlines():
         try:
             r = json.loads(line)
+            if r.get("error"):
+                continue
             done.add(f"{r['system']}|{r['case_id']}|{r.get('rep', 0)}")
         except Exception:
             continue
     return done
 
 
+def verify_credentials(client_factory) -> tuple[bool, str]:
+    """One trivial call before committing to hundreds.
+
+    A 401 discovered at run 432 costs the whole evaluation and looks like a
+    harness failure; the same 401 on call one costs a second and names itself.
+    """
+    try:
+        client = client_factory()
+        r = client.complete(system="Reply with the single word: ok.",
+                            messages=[{"role": "user", "content": "ping"}],
+                            max_tokens=8)
+        return True, (f"{getattr(client, 'name', 'client')} responded "
+                      f"({r.input_tokens} in / {r.output_tokens} out)")
+    except Exception as exc:
+        msg = str(exc)
+        hint = ""
+        low = msg.lower()
+        if "401" in msg or "invalid api key" in low or "authentication" in low:
+            hint = ("  The credential was rejected. Check for a truncated "
+                    "paste, surrounding quotes, or a stray newline; Groq keys "
+                    "begin 'gsk_'.")
+        elif "429" in msg or "rate" in low:
+            hint = "  Rate limited. Lower --workers and try again."
+        elif "connect" in low or "refused" in low:
+            hint = "  Endpoint unreachable. Is the local server running?"
+        return False, f"{type(exc).__name__}: {msg[:220]}" + ("\n" + hint if hint else "")
+
+
 def evaluate(client_factory, *, split: str = "heldout", reps: int = 3,
              systems: list[str] | None = None, out_name: str = "runs",
              max_workers: int = 4, case_ids: list[str] | None = None,
-             write_traces: bool = True, progress: bool = True) -> dict:
+             write_traces: bool = True, progress: bool = True,
+             preflight: bool = True) -> dict:
     """Run every (system, case, rep) combination that is not already recorded."""
     systems = systems or list(SYSTEMS)
     cases = case_ids or list_cases(split)
     RESULTS.mkdir(parents=True, exist_ok=True)
+
+    if preflight:
+        ok, detail = verify_credentials(client_factory)
+        if progress:
+            print(f"  pre-flight: {'OK' if ok else 'FAILED'} -- {detail}")
+        if not ok:
+            return {"n_run": 0, "n_errors": 0, "preflight_failed": True,
+                    "detail": detail}
 
     runs_path = RESULTS / f"{out_name}.jsonl"
     scores_path = RESULTS / f"{out_name}_scores.jsonl"
