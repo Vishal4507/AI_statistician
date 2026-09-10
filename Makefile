@@ -28,6 +28,7 @@ help:
 	@echo "  make figures    regenerate the report figures"
 	@echo "  make capstone   regenerate the full capstone report (incl. figures)"
 	@echo "  make audit      independent label audit (no API key needed)"
+	@echo "  make conformance  verify every blueprint section 12 requirement"
 	@echo "  make blind      prepare a blinded scoring packet + one-page scorer"
 	@echo "  make reliability  inter-rater agreement on a completed scoring round"
 	@echo "  make demo       launch the Streamlit demo (live analysis, local)"
@@ -91,6 +92,10 @@ capstone: figures
 
 audit:
 	$(PY) scripts/audit_labels.py
+
+# Every section 12 requirement asserted against the artefacts on disk.
+conformance:
+	$(PY) scripts/conformance.py
 
 # RUN defaults to the offline calibration set; point it at a live run once one
 # exists, e.g. make blind RUN=heldout_claude-opus-5

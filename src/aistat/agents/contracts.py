@@ -168,6 +168,15 @@ SCHEMAS = {
 # {key, value} objects.  These helpers put them back into dicts.
 
 def _pairs(items, key: str, val: str) -> dict[str, str]:
+    """Normalise a pair collection to a map.
+
+    Structured outputs deliver these as an array of {key, value} objects; the
+    offline client produces the map directly. An earlier version handled only
+    the array, so a map was silently emptied -- which cost the section 12
+    demonstration its "clear rejection of ordinary ANOVA" without any error.
+    """
+    if isinstance(items, dict):
+        return {str(k): str(v) for k, v in items.items()}
     out: dict[str, str] = {}
     for it in items or []:
         if isinstance(it, dict) and key in it:

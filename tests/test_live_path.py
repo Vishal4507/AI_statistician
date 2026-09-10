@@ -285,3 +285,55 @@ def test_unsupported_effort_is_recorded_in_the_client_name():
     if not c.caps["effort"] and c.effort != "high":
         name += ":effort-unsupported"
     assert "effort-unsupported" in name
+
+
+# ==========================================================================
+# Pair normalisation
+# ==========================================================================
+#
+# Structured outputs deliver pair collections as an array of {key, value}
+# objects; the offline client produces a map directly. Handling only the array
+# silently emptied every rejected-alternatives map, which cost the section 12
+# demonstration its "clear rejection of ordinary ANOVA" with no error raised --
+# found by scripts/conformance.py, not by any test here.
+
+def test_pairs_accepts_the_offline_map_shape():
+    from aistat.agents.contracts import _pairs
+    out = _pairs({"one_way_anova": "variance ratio 2.4"}, "method", "reason")
+    assert out == {"one_way_anova": "variance ratio 2.4"}
+
+
+def test_pairs_accepts_the_structured_output_array_shape():
+    from aistat.agents.contracts import _pairs
+    out = _pairs([{"method": "student_t", "reason": "variance differs"}],
+                 "method", "reason")
+    assert out == {"student_t": "variance differs"}
+
+
+def test_pairs_tolerates_empty_and_malformed_input():
+    from aistat.agents.contracts import _pairs
+    assert _pairs(None, "method", "reason") == {}
+    assert _pairs([], "method", "reason") == {}
+    assert _pairs(["not a dict"], "method", "reason") == {}
+
+
+def test_selection_keeps_its_rejected_alternatives_through_normalise():
+    from aistat.agents.contracts import normalise
+    out = normalise("select_method", {
+        "method": "welch_anova", "abstain_reason": None, "rationale": "r",
+        "evidence_refs": [], "confidence": "high",
+        "rejected_alternatives": {"one_way_anova": "heteroscedastic"}})
+    assert out["rejected_alternatives"] == {"one_way_anova": "heteroscedastic"}
+
+
+def test_protocol_run_surfaces_the_rejected_alternative():
+    """Blueprint section 12 demo 1: Welch ANOVA with a clear rejection of ANOVA."""
+    from aistat.agents.base import Case
+    from aistat.agents.rulebased import RuleBasedClient
+    from aistat.agents.systems import SYSTEMS
+    r = SYSTEMS["C_protocol"](RuleBasedClient("expert")).run(
+        Case.load("syn_welch_anova_1"))
+    assert r.method == "welch_anova"
+    rejected = (r.selection or {}).get("rejected_alternatives") or {}
+    assert "one_way_anova" in rejected, "the rejection the demo requires is absent"
+    assert rejected["one_way_anova"], "rejection has no stated reason"

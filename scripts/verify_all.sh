@@ -5,36 +5,36 @@ set -e
 cd "$(dirname "$0")/.."
 export PYTHONPATH=src
 
-echo "=== 1/8  benchmark builds and validates ==="
+echo "=== 1/9  benchmark builds and validates ==="
 python3 scripts/build_benchmark.py | tail -3
 
 echo ""
-echo "=== 2/8  test suite ==="
+echo "=== 2/9  test suite ==="
 python3 -m pytest tests/ -q 2>&1 | tail -2
 
 echo ""
-echo "=== 3/8  offline evaluation (432 runs) ==="
+echo "=== 3/9  offline evaluation (432 runs) ==="
 rm -f results/heldout_rulebased_expert*
 python3 scripts/run_evaluation.py --client rulebased --split heldout --reps 3 --workers 6 2>&1 | tail -2
 
 echo ""
-echo "=== 4/8  result tables rebuild from logs ==="
+echo "=== 4/9  result tables rebuild from logs ==="
 python3 scripts/analyze.py --name heldout_rulebased_expert --quiet && echo "  tables regenerated"
 
 echo ""
-echo "=== 5/8  capstone report regenerates ==="
+echo "=== 5/9  capstone report regenerates ==="
 python3 scripts/write_report.py --name heldout_rulebased_expert
 
 echo ""
-echo "=== 6/8  label audit ==="
+echo "=== 6/9  label audit ==="
 python3 scripts/audit_labels.py | tail -4
 
 echo ""
-echo "=== 7/8  static site exports ==="
+echo "=== 7/9  static site exports ==="
 python3 scripts/export_site.py | tail -1
 
 echo ""
-echo "=== 8/8  demo boots ==="
+echo "=== 8/9  demo boots ==="
 python3 - <<'PY'
 import os, subprocess, sys, time, urllib.request
 env = dict(os.environ, STREAMLIT_SERVER_HEADLESS="true",
@@ -57,6 +57,10 @@ p.terminate()
 print("  demo health check:", "OK" if ok else "FAILED")
 sys.exit(0 if ok else 1)
 PY
+
+echo ""
+echo "=== 9/9  blueprint conformance ==="
+python3 scripts/conformance.py | tail -8
 
 echo ""
 echo "ALL CHECKS PASSED"
