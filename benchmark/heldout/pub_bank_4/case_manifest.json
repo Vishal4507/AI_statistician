@@ -14,7 +14,7 @@
   "source": "bank_marketing",
   "source_doi": "10.24432/C5K306",
   "n_rows": 4000,
-  "data_sha256": "5aae09cad14993e077f2826293a7bfdde74e2cda1bdd4bf45c15f80e8f46cb0e",
+  "data_sha256": "5fe574306f8d92312ee52f527f81ab714884c3d3a428066ee62a0e891c8e47f1",
   "source_url": "https://archive.ics.uci.edu/dataset/222",
   "source_license": "CC BY 4.0"
 }

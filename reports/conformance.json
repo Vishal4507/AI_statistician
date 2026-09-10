@@ -70,7 +70,7 @@
       "ref": "DoD.2",
       "name": "All methods unit-tested; all cases pass validation",
       "status": "PASS ",
-      "detail": "173 passed in 13.52s",
+      "detail": "173 passed in 13.46s",
       "blocked_on": ""
     },
     {

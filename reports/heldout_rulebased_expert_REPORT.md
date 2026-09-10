@@ -1,6 +1,6 @@
 # AI Statistician — results
 
-Generated 2026-09-09 12:16 UTC from
+Generated 2026-09-10 14:35 UTC from
 `results/heldout_rulebased_expert_scores.jsonl`. Regenerate with `make analyze`.
 
 > **This is a calibration run, not an experiment.**
@@ -24,7 +24,7 @@ Generated 2026-09-09 12:16 UTC from
 | Repetitions | 3 |
 | Total runs | 432 |
 | Prompt hash | `7ba9f7108937e6f9` |
-| Git commit | `93840ac0072c` |
+| Git commit | `907dabe24f57` |
 | Determinism controls | pinned model id, fixed effort, frozen prompt hash, n repetitions |
 | Library versions | numpy 1.26.3, pandas 2.1.4, scipy 1.13.1, statsmodels 0.14.2 |
 
@@ -55,7 +55,7 @@ metric for Systems A and B, where nothing is enforced.
 |---|---|---|---|---|---|---|---|---|---|
 | A. Direct LLM | 144 | 0.562 | 0.481 | 0.641 | 0.000 | 0.188 | 0.607 | 2.17 | 1.00 |
 | B. LLM with tools | 144 | 0.500 | 0.419 | 0.581 | 0.000 | 0.188 | 0.693 | 2.71 | 3.71 |
-| C. Structured agent | 144 | 1.000 | 0.974 | 1.000 | 1.000 | 0.000 | 0.771 | 2.71 | 4.00 |
+| C. Structured agent | 144 | 1.000 | 0.974 | 1.000 | 1.000 | 0.000 | 0.807 | 2.71 | 4.00 |
 
 Accuracy intervals are Wilson intervals on the run-level counts.
 
