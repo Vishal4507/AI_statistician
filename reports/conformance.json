@@ -1,7 +1,7 @@
 {
-  "pass": 13,
+  "pass": 16,
   "fail": 0,
-  "blocked": 2,
+  "blocked": 0,
   "checks": [
     {
       "ref": "12.1",
@@ -27,15 +27,15 @@
     {
       "ref": "12.4",
       "name": "Evaluation assets: 3 systems, run logs, scorers, tables, taxonomy",
-      "status": "BLOCK",
-      "detail": "no live held-out run recorded. FREE options: `make eval-free PROVIDER=groq` (free key) or PROVIDER=ollama (local, no key). Paid: ~$34 Opus / ~$10 Haiku. Offline study complete: 432 runs, 3 systems, 2 table sets",
-      "blocked_on": "no live held-out run recorded. FREE options: `make eval-free PROVIDER=groq` (free key) or PROVIDER=ollama (local, no key). Paid: ~$34 Opus / ~$10 Haiku. Offline study complete: 432 runs, 3 systems, 2 table sets"
+      "status": "PASS ",
+      "detail": "live held-out run recorded: heldout_claude-haiku-4-5_scores.jsonl -- 288/288 runs reached a method decision",
+      "blocked_on": ""
     },
     {
       "ref": "12.5",
       "name": "Capstone report with results, error analysis, limitations",
       "status": "PASS ",
-      "detail": "336 lines, 4 figures, all sections present",
+      "detail": "370 lines, 7 figures, all sections present",
       "blocked_on": ""
     },
     {
@@ -70,21 +70,21 @@
       "ref": "DoD.2",
       "name": "All methods unit-tested; all cases pass validation",
       "status": "PASS ",
-      "detail": "189 passed in 14.90s",
+      "detail": "241 passed",
       "blocked_on": ""
     },
     {
       "ref": "DoD.3",
       "name": "Held-out evaluation with frozen prompts, complete run record",
-      "status": "BLOCK",
-      "detail": "not run. Everything around it is in place -- prompt freeze, resumable runner, budget guard, live-path smoke test. Runnable at zero cost with `make eval-free PROVIDER=ollama` (local) or a free provider key",
-      "blocked_on": "not run. Everything around it is in place -- prompt freeze, resumable runner, budget guard, live-path smoke test. Runnable at zero cost with `make eval-free PROVIDER=ollama` (local) or a free provider key"
+      "status": "PASS ",
+      "detail": "heldout_claude-haiku-4-5_scores.jsonl: 288/288 runs reached a method decision; 288 of 288 planned runs recorded; prompt hash 7ba9f7108937e6f9 frozen in manifest",
+      "blocked_on": ""
     },
     {
       "ref": "DoD.4",
       "name": "Every numerical claim maps to a tool output",
       "status": "PASS ",
-      "detail": "5,190 rendered sections, 0 with an unresolved reference",
+      "detail": "6,738 rendered sections, 0 with an unresolved reference",
       "blocked_on": ""
     },
     {
@@ -98,7 +98,14 @@
       "ref": "DoD.6",
       "name": "Report states whether structure beat tool access alone",
       "status": "PASS ",
-      "detail": "stated from development-set evidence and explicitly labelled preliminary; held-out confirmation outstanding",
+      "detail": "uplift and paired test reported",
+      "blocked_on": ""
+    },
+    {
+      "ref": "Docs",
+      "name": "Counts quoted in the docs match the artefacts they describe",
+      "status": "PASS ",
+      "detail": "241 tests, 7 figures, 8 deviations, 12 test modules -- documents agree",
       "blocked_on": ""
     },
     {

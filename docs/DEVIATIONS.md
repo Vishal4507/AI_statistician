@@ -1,8 +1,8 @@
 # Deviations from the blueprint
 
-Six documented departures. Four come from the implementation review; two were
-forced by facts discovered during construction. Everything else follows the
-blueprint as written.
+Eight documented departures. Four come from the implementation review; two were
+forced by facts discovered during construction; two were forced by what the
+held-out run itself revealed. Everything else follows the blueprint as written.
 
 ---
 
@@ -130,6 +130,64 @@ respond to. Labels stay mechanically derived and stop disagreeing with their own
 data.
 
 **Where**: `benchmark/generators.py`.
+
+---
+
+## 7. A rejected report counts as a run, not a lost run (blueprint §8.3)
+
+**Blueprint**: reports selection accuracy over completed runs, with failures
+excluded as harness noise.
+
+**Problem**: the held-out run made that distinction untenable. 51 of 288 runs
+ended with an error, and none of them were harness noise. Every one had already
+chosen a method and executed it; what failed was the write-up — prose carrying a
+raw number no tool produced, or a `{{...}}` reference to a result the system
+never computed. 43 of the 51 were System A, and 37 of the 51 had selected the
+*correct* method.
+
+Excluding them moves System A's apparent accuracy from 75.0% to 81.1%. That is
+not a rounding difference: it deletes the baseline's worst behaviour from the
+headline metric and flatters exactly the system whose ungrounded claims the
+project exists to expose.
+
+**What we do instead**: the population for selection metrics is every run that
+reached a method decision. A run that never got that far — a 400 or a 401 —
+carries no evidence about selection and is still excluded. The discriminator is
+`chosen_method == "none"`, and it is not a guess: on the two development runs it
+separates 16 `BadRequestError`s from 4 contract failures exactly. Report validity
+is then promoted from a footnote to a reported metric in its own right, because
+"chose correctly and could not say so without inventing a number" is a result.
+
+**Where**: `evaluation/analysis.py::made_a_selection`, `::report_validity`,
+`evaluation/liveness.py::produced_a_result`. Pinned by
+`tests/test_conformance_guarantees.py`.
+
+---
+
+## 8. Repetition ties are broken by the earliest run (blueprint §8.3)
+
+**Blueprint**: collapse repetitions to a per-case majority before the paired
+test.
+
+**Problem**: with two repetitions there is often no majority. The original
+implementation resolved a 1–1 tie with `max(set(methods), key=methods.count)`,
+and set iteration order depends on `PYTHONHASHSEED` — so the tie fell a
+different way in every process. On the held-out run this alone moved McNemar's
+p for A-versus-C between **0.016 and 0.125** across interpreter runs, on
+identical data. The significance verdict changed with the seed.
+
+**What we do instead**: repetitions are sorted by index and ties go to the
+earliest repetition — deterministic, and it uses a real observation rather than
+an arbitrary one. How often the rule was needed is reported rather than buried:
+25 of 144 system-case cells on the held-out run, unevenly spread (System B 14,
+System A 6, System C 5), which is itself a measure of run-to-run stability.
+
+**Why it matters beyond this project**: a capstone whose conclusions change when
+the reader re-runs the analysis has no conclusions. The regression is pinned by
+`tests/test_analysis_determinism.py`, which runs the analysis in fresh
+interpreters under three hash seeds and requires byte-identical output.
+
+**Where**: `evaluation/analysis.py::majority_by_case`.
 
 ---
 

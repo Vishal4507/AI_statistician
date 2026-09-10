@@ -119,8 +119,14 @@ class AnthropicClient:
             # requested effort was not applied, or a cross-model comparison
             # would silently compare unlike configurations.
             self.name += ":effort-unsupported"
-        self._client = anthropic.Anthropic(api_key=api_key) if api_key \
-            else anthropic.Anthropic()
+        # Explicit timeout and retry budget, matching the OpenAI-compatible
+        # client.  A held-out evaluation is 288 sequential-ish calls behind a
+        # thread pool: one request that hangs on the SDK default holds a worker
+        # for ten minutes, and a rate-limit burst with too few retries turns
+        # recoverable 429s into permanent error rows in the results.
+        self._client = anthropic.Anthropic(
+            api_key=api_key, max_retries=8, timeout=300.0) if api_key \
+            else anthropic.Anthropic(max_retries=8, timeout=300.0)
         self.total_input = self.total_output = self.total_cache_read = 0
         self.n_calls = self.n_refusals = self.n_parse_failures = 0
 

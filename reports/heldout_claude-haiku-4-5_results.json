@@ -1,0 +1,206 @@
+{
+  "n_runs": 288,
+  "n_cases": 48,
+  "n_systems": 3,
+  "reps": 2,
+  "system_summary": [
+    {
+      "system": "A_direct",
+      "n_runs": 96,
+      "selection_accuracy": 0.75,
+      "acc_ci_low": 0.654901889760503,
+      "acc_ci_high": 0.8258603163106593,
+      "exact_match_rate": 0.6979166666666666,
+      "abstention_recall": 0.2777777777777778,
+      "abst_ci_low": 0.12499753379553993,
+      "abst_ci_high": 0.5087265656029746,
+      "unsafe_selection_rate": 0.13541666666666666,
+      "assumption_coverage": 0.6197420634920635,
+      "unsupported_inference_rate": 0.0,
+      "numeric_fidelity": 0.6998802921216714,
+      "provenance_rejections": 15,
+      "verification_pass_rate": 0.029411764705882353,
+      "mean_tool_calls": 2.1666666666666665,
+      "mean_llm_calls": 1.0,
+      "mean_latency_ms": 24285.422916666666,
+      "total_input_tokens": 260620,
+      "total_output_tokens": 156648,
+      "revision_rate": 0.0,
+      "n_errors": 43
+    },
+    {
+      "system": "B_tools",
+      "n_runs": 96,
+      "selection_accuracy": 0.6666666666666666,
+      "acc_ci_low": 0.5675650615328802,
+      "acc_ci_high": 0.7529430758478948,
+      "exact_match_rate": 0.625,
+      "abstention_recall": 0.0,
+      "abst_ci_low": 0.0,
+      "abst_ci_high": 0.17587922364665765,
+      "unsafe_selection_rate": 0.1875,
+      "assumption_coverage": 0.7732886904761905,
+      "unsupported_inference_rate": 0.0,
+      "numeric_fidelity": 0.8137792397660819,
+      "provenance_rejections": 0,
+      "verification_pass_rate": 0.875,
+      "mean_tool_calls": 3.5729166666666665,
+      "mean_llm_calls": 3.3125,
+      "mean_latency_ms": 18620.094791666666,
+      "total_input_tokens": 870903,
+      "total_output_tokens": 101798,
+      "revision_rate": 0.0,
+      "n_errors": 0
+    },
+    {
+      "system": "C_protocol",
+      "n_runs": 96,
+      "selection_accuracy": 0.8854166666666666,
+      "acc_ci_low": 0.8063737876272061,
+      "acc_ci_high": 0.9348012800658358,
+      "exact_match_rate": 0.8020833333333334,
+      "abstention_recall": 0.7777777777777778,
+      "abst_ci_low": 0.5478541568378739,
+      "abst_ci_high": 0.9099907189139831,
+      "unsafe_selection_rate": 0.041666666666666664,
+      "assumption_coverage": 0.9460565476190476,
+      "unsupported_inference_rate": 0.02922641594516594,
+      "numeric_fidelity": 0.6948051731334491,
+      "provenance_rejections": 8,
+      "verification_pass_rate": 0.7340425531914894,
+      "mean_tool_calls": 2.8020833333333335,
+      "mean_llm_calls": 4.333333333333333,
+      "mean_latency_ms": 126069.35104166665,
+      "total_input_tokens": 1128446,
+      "total_output_tokens": 897282,
+      "revision_rate": 0.0625,
+      "n_errors": 8
+    }
+  ],
+  "risk_coverage": [
+    {
+      "system": "A_direct",
+      "n_runs": 96,
+      "coverage": 0.9479166666666666,
+      "selective_accuracy": 0.7362637362637363,
+      "overall_accuracy": 0.75,
+      "accuracy_on_supported": 0.8589743589743589,
+      "abstention_recall": 0.2777777777777778,
+      "n_abstention_cases": 18,
+      "unsafe_selection_rate": 0.13541666666666666,
+      "over_abstention_rate": 0.0
+    },
+    {
+      "system": "B_tools",
+      "n_runs": 96,
+      "coverage": 0.9791666666666666,
+      "selective_accuracy": 0.6808510638297872,
+      "overall_accuracy": 0.6666666666666666,
+      "accuracy_on_supported": 0.8205128205128205,
+      "abstention_recall": 0.0,
+      "n_abstention_cases": 18,
+      "unsafe_selection_rate": 0.1875,
+      "over_abstention_rate": 0.02564102564102564
+    },
+    {
+      "system": "C_protocol",
+      "n_runs": 96,
+      "coverage": 0.8541666666666666,
+      "selective_accuracy": 0.8658536585365854,
+      "overall_accuracy": 0.8854166666666666,
+      "accuracy_on_supported": 0.9102564102564102,
+      "abstention_recall": 0.7777777777777778,
+      "n_abstention_cases": 18,
+      "unsafe_selection_rate": 0.041666666666666664,
+      "over_abstention_rate": 0.0
+    }
+  ],
+  "pairwise": [
+    {
+      "system_a": "A_direct",
+      "system_b": "B_tools",
+      "n_cases": 48,
+      "acc_a": 0.7708333333333334,
+      "acc_b": 0.6458333333333334,
+      "uplift_b_minus_a": -0.125,
+      "uplift_ci_low": -0.25,
+      "uplift_ci_high": 0.0,
+      "bootstrap_p": 0.064,
+      "mcnemar_p": 0.109375,
+      "b_only_correct": 2,
+      "a_only_correct": 8
+    },
+    {
+      "system_a": "A_direct",
+      "system_b": "C_protocol",
+      "n_cases": 48,
+      "acc_a": 0.7708333333333334,
+      "acc_b": 0.8958333333333334,
+      "uplift_b_minus_a": 0.125,
+      "uplift_ci_low": 0.02083333333333326,
+      "uplift_ci_high": 0.25,
+      "bootstrap_p": 0.0334,
+      "mcnemar_p": 0.0703125,
+      "b_only_correct": 7,
+      "a_only_correct": 1
+    },
+    {
+      "system_a": "B_tools",
+      "system_b": "C_protocol",
+      "n_cases": 48,
+      "acc_a": 0.6458333333333334,
+      "acc_b": 0.8958333333333334,
+      "uplift_b_minus_a": 0.25,
+      "uplift_ci_low": 0.125,
+      "uplift_ci_high": 0.39583333333333326,
+      "bootstrap_p": 0.0,
+      "mcnemar_p": 0.0018310546875,
+      "b_only_correct": 13,
+      "a_only_correct": 1
+    }
+  ],
+  "failures": [
+    {
+      "system": "A_direct",
+      "failure_stage": "design_validation",
+      "n": 13
+    },
+    {
+      "system": "A_direct",
+      "failure_stage": "diagnostic_reasoning",
+      "n": 8
+    },
+    {
+      "system": "A_direct",
+      "failure_stage": "problem_parsing",
+      "n": 3
+    },
+    {
+      "system": "B_tools",
+      "failure_stage": "design_validation",
+      "n": 20
+    },
+    {
+      "system": "B_tools",
+      "failure_stage": "diagnostic_reasoning",
+      "n": 12
+    },
+    {
+      "system": "C_protocol",
+      "failure_stage": "diagnostic_reasoning",
+      "n": 6
+    },
+    {
+      "system": "C_protocol",
+      "failure_stage": "design_validation",
+      "n": 4
+    },
+    {
+      "system": "C_protocol",
+      "failure_stage": "problem_parsing",
+      "n": 1
+    }
+  ],
+  "rep_agreement_mean": 0.9131944444444444,
+  "pct_unanimous": 0.8263888888888888
+}

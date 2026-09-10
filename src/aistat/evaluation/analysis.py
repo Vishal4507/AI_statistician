@@ -6,6 +6,8 @@ and the risk-coverage curve added by review finding F-A3.
 """
 from __future__ import annotations
 
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -15,8 +17,20 @@ def majority_by_case(scores: pd.DataFrame) -> pd.DataFrame:
     """Per (system, case) majority decision plus repetition agreement."""
     rows = []
     for (sysname, case), g in scores.groupby(["system", "case_id"]):
+        # Order by repetition, not by the order runs happened to finish: the
+        # results file is written in completion order, which a thread pool does
+        # not reproduce between runs.
+        g = g.sort_values("rep") if "rep" in g else g
         methods = g["chosen_method"].tolist()
-        top = max(set(methods), key=methods.count)
+        # `max(set(methods), key=methods.count)` looks equivalent and is not:
+        # set iteration order depends on PYTHONHASHSEED, so a tie was broken
+        # differently in each process.  With two repetitions every disagreement
+        # is a 1-1 tie, and on the held-out run that alone moved McNemar's p
+        # between 0.016 and 0.125 -- across the 0.05 line -- on identical data.
+        # Ties now go to the earliest repetition, which is deterministic and
+        # uses a real observation rather than an arbitrary one.
+        counts = Counter(methods)
+        top = min(counts, key=lambda m: (-counts[m], methods.index(m)))
         rows.append({
             "system": sysname, "case_id": case,
             "majority_method": top,
@@ -104,6 +118,61 @@ def wilson_ci(k: int, n: int, conf: float = 0.95) -> tuple[float, float]:
     centre = (p + z**2 / (2 * n)) / den
     half = z * np.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / den
     return (float(max(0.0, centre - half)), float(min(1.0, centre + half)))
+
+
+NO_SELECTION = "none"
+
+
+def made_a_selection(scores: pd.DataFrame) -> pd.DataFrame:
+    """Runs that recorded a method decision, whatever became of them after.
+
+    Two very different things both land in `run_error`, and collapsing them
+    corrupts the headline metric in opposite directions:
+
+      a request that never completed      a 400 or a 401.  No method was ever
+                                          chosen, so the run carries no
+                                          evidence about selection and must not
+                                          count as a wrong answer.
+
+      a report that failed the contract   the model chose a method, ran it, and
+                                          then wrote prose containing a raw
+                                          number or a reference to a result it
+                                          never produced.  The selection is
+                                          recorded and observable; discarding
+                                          it throws away real evidence.
+
+    On the held-out Haiku run the second kind is 51 of 288 runs, 43 of them
+    System A, and 37 of those 51 selected the correct method.  Dropping them
+    moves System A's apparent accuracy from 75.0% to 81.1% -- flattering the
+    baseline by hiding the runs where it could not ground its own claims.
+
+    `chosen_method == "none"` marks the first kind; everything else made a
+    decision.  The discriminator is not a guess: on the two development runs it
+    separates 16 BadRequestErrors from 4 contract failures exactly.
+    """
+    if "chosen_method" not in scores or not len(scores):
+        return scores
+    return scores[scores["chosen_method"].notna()
+                  & (scores["chosen_method"] != NO_SELECTION)]
+
+
+def report_validity(scores: pd.DataFrame) -> pd.DataFrame:
+    """Per system: how often the finished report satisfied the contract.
+
+    This is a result, not a diagnostic.  A system that selects well and then
+    cannot say what it found without inventing a number has not done the task,
+    and the provenance contract is what makes that visible instead of leaving
+    it for a reader to notice.
+    """
+    rows = []
+    for sysname, g in made_a_selection(scores).groupby("system"):
+        bad = int(g["run_error"].notna().sum()) if "run_error" in g else 0
+        n = len(g)
+        lo, hi = wilson_ci(n - bad, n)
+        rows.append({"system": sysname, "n_runs": n, "n_report_rejected": bad,
+                     "report_valid_rate": (n - bad) / n if n else np.nan,
+                     "valid_ci_low": lo, "valid_ci_high": hi})
+    return pd.DataFrame(rows)
 
 
 def system_summary(scores: pd.DataFrame) -> pd.DataFrame:

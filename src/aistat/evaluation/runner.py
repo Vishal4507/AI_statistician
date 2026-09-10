@@ -26,6 +26,12 @@ ROOT = Path(__file__).resolve().parents[3]
 RESULTS = ROOT / "results"
 BENCH = ROOT / "benchmark"
 
+#: Runs to complete between writes to disk.  This is the most work a crash can
+#: destroy: results were previously written once, after the final run, so an
+#: interruption at run 287 of 288 lost every completed run and the retry paid
+#: for all of them again.
+FLUSH_EVERY = 25
+
 
 def list_cases(split: str) -> list[str]:
     d = BENCH / split
@@ -195,31 +201,57 @@ def evaluate(client_factory, *, split: str = "heldout", reps: int = 3,
                       "run_error": rd["error"], "selection_correct": False}
             return rd, sc, ""
 
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = {pool.submit(_one, k): k for k in todo}
-        for i, fut in enumerate(as_completed(futures), 1):
-            out = fut.result()
-            if out is None:
-                continue
-            rd, sc, tr = out
-            if rd.get("error"):
-                errors += 1
-            lock_runs.append(json.dumps(rd, default=str))
-            lock_scores.append(json.dumps(sc, default=str))
-            if write_traces and tr:
-                lock_traces.append(tr)
-            if progress and (i % 25 == 0 or i == len(todo)):
-                el = time.perf_counter() - t0
-                print(f"    {i}/{len(todo)}  {el:5.1f}s  "
-                      f"({i / max(el, 1e-9):.1f}/s)  errors={errors}")
+    done_runs = done_traces = 0
 
-    with runs_path.open("a") as f:
-        f.write("\n".join(lock_runs) + "\n")
-    with scores_path.open("a") as f:
-        f.write("\n".join(lock_scores) + "\n")
-    if lock_traces:
-        with trace_path.open("a") as f:
-            f.write("\n".join(lock_traces) + "\n")
+    def _flush() -> None:
+        """Persist everything finished since the last call.
+
+        Writing only at the end means a crash at run 287 of 288 discards every
+        completed run.  That is not merely lost time: `_completed()` reads
+        these files to decide what to skip, so the retry restarts from zero and
+        pays the whole bill a second time.  Appending as we go makes any
+        interruption cost one batch instead of the entire evaluation.
+        """
+        nonlocal done_runs, done_traces
+        if done_runs < len(lock_runs):
+            with runs_path.open("a") as f:
+                f.write("\n".join(lock_runs[done_runs:]) + "\n")
+            with scores_path.open("a") as f:
+                f.write("\n".join(lock_scores[done_runs:]) + "\n")
+            done_runs = len(lock_runs)
+        if done_traces < len(lock_traces):
+            with trace_path.open("a") as f:
+                f.write("\n".join(lock_traces[done_traces:]) + "\n")
+            done_traces = len(lock_traces)
+        manifest.update(n_executed=len(lock_runs), n_errors=errors)
+        manifest_path.write_text(json.dumps(manifest, indent=2))
+
+    try:
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            futures = {pool.submit(_one, k): k for k in todo}
+            for i, fut in enumerate(as_completed(futures), 1):
+                out = fut.result()
+                if out is None:
+                    continue
+                rd, sc, tr = out
+                if rd.get("error"):
+                    errors += 1
+                lock_runs.append(json.dumps(rd, default=str))
+                lock_scores.append(json.dumps(sc, default=str))
+                if write_traces and tr:
+                    lock_traces.append(tr)
+                if i % FLUSH_EVERY == 0 or i == len(todo):
+                    _flush()
+                    if progress:
+                        el = time.perf_counter() - t0
+                        # flush=True: stdout is block-buffered when redirected
+                        # to a file, so progress was invisible for the whole
+                        # length of a long run.
+                        print(f"    {i}/{len(todo)}  {el:5.1f}s  "
+                              f"({i / max(el, 1e-9):.1f}/s)  errors={errors}",
+                              flush=True)
+    finally:
+        _flush()          # keep whatever completed, even on Ctrl-C or crash
 
     elapsed = time.perf_counter() - t0
     manifest.update(n_executed=len(lock_runs), n_errors=errors,

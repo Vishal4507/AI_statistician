@@ -24,6 +24,7 @@ import pandas as pd
 from aistat.evaluation.analysis import (failure_taxonomy, majority_by_case,
                                         pairwise_comparisons, risk_coverage,
                                         system_summary)
+from aistat.evaluation.liveness import best_live_heldout
 from aistat.evaluation.runner import RESULTS, load_scores
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -38,9 +39,25 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", default="heldout_rulebased_expert")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--live-heldout", action="store_true",
+                    help="analyse whichever live held-out run exists, by "
+                         "search rather than by name; exits quietly when "
+                         "none has been run yet")
     args = ap.parse_args()
 
-    scores = load_scores(args.name)
+    run_name = args.name
+    if args.live_heldout:
+        # Resolved by search: the file is named for whichever model executed
+        # it, so the one thing this must not do is assume.
+        best = best_live_heldout(RESULTS)
+        if best is None:
+            print("no usable live held-out run yet -- nothing to analyse")
+            return 0
+        run_name = best[0].name[: -len("_scores.jsonl")]
+        if not args.quiet:
+            print(f"analysing live held-out run: {run_name}")
+
+    scores = load_scores(run_name)
     REPORTS.mkdir(exist_ok=True)
 
     summary = system_summary(scores)
@@ -61,11 +78,11 @@ def main() -> int:
         "rep_agreement_mean": float(majority["rep_agreement"].mean()),
         "pct_unanimous": float(majority["unanimous"].mean()),
     }
-    (REPORTS / f"{args.name}_results.json").write_text(json.dumps(out, indent=2, default=str))
-    for name, df in (("system_summary", summary), ("risk_coverage", rc),
-                     ("pairwise", pairs), ("failures", fails),
-                     ("majority_by_case", majority)):
-        df.to_csv(REPORTS / f"{args.name}_{name}.csv", index=False)
+    (REPORTS / f"{run_name}_results.json").write_text(json.dumps(out, indent=2, default=str))
+    for table, df in (("system_summary", summary), ("risk_coverage", rc),
+                      ("pairwise", pairs), ("failures", fails),
+                      ("majority_by_case", majority)):
+        df.to_csv(REPORTS / f"{run_name}_{table}.csv", index=False)
 
     if not args.quiet:
         cols = ["system", "n_runs", "selection_accuracy", "acc_ci_low", "acc_ci_high",
@@ -86,7 +103,7 @@ def main() -> int:
         print(fmt(fails))
         print(f"\n  repetition agreement {out['rep_agreement_mean']:.3f}, "
               f"unanimous on {out['pct_unanimous']:.1%} of cases")
-        print(f"  tables -> {REPORTS}/{args.name}_*.csv")
+        print(f"  tables -> {REPORTS}/{run_name}_*.csv")
     return 0
 
 

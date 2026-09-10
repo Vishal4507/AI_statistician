@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from aistat.env import load_dotenv
+from aistat.evaluation.liveness import best_live_heldout
 load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
@@ -149,10 +150,20 @@ def main() -> int:
     cases = export_cases()
     (DATA / "cases.json").write_text(json.dumps(cases, separators=(",", ":")))
 
+    sources = [("heldout_rulebased_expert", "Held-out, expert policy"),
+               ("heldout_rulebased_naive", "Held-out, naive policy"),
+               ("dev_claude-opus-5_high", "Development, Claude Opus 5")]
+
+    # The live held-out run is named for whichever model executed it, so it is
+    # found rather than listed.  It goes first: it is the headline evidence.
+    best = best_live_heldout(RESULTS)
+    if best is not None:
+        live_name = best[0].name[: -len("_scores.jsonl")]
+        model = live_name.split("heldout_", 1)[1]
+        sources.insert(0, (live_name, f"Held-out, {model}"))
+
     bundles = {}
-    for name, label in [("heldout_rulebased_expert", "Held-out, expert policy"),
-                        ("heldout_rulebased_naive", "Held-out, naive policy"),
-                        ("dev_claude-opus-5_high", "Development, Claude Opus 5")]:
+    for name, label in sources:
         b = export_runs(name, label)
         if b:
             bundles[name] = b

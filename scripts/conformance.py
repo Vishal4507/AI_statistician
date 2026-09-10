@@ -10,6 +10,7 @@ quietly passed.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import warnings
@@ -20,6 +21,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from aistat.env import load_dotenv
+from aistat.evaluation.liveness import (best_live_heldout,
+                                        failed_attempts_note)
 load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
@@ -57,19 +60,34 @@ def check(ref: str, name: str):
 # Helpers
 # ==========================================================================
 
+_WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
+          7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+
+
+def _pytest_count() -> int | None:
+    """How many tests the suite actually holds, by asking it."""
+    import re
+    r = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q",
+                        "--collect-only", "-p", "no:cacheprovider"],
+                       cwd=ROOT, capture_output=True, text=True)
+    m = re.search(r"(\d+) tests collected", r.stdout)
+    return int(m.group(1)) if m else None
+
+
 def _any_live_heldout():
-    """Any held-out run against a real model, whichever provider produced it.
+    """The best usable held-out run against a real model, or None.
 
     The blueprint fixes a model version, not a vendor, so a free provider
-    satisfies this exactly as a paid one does.
+    satisfies this exactly as a paid one does.  The rule that a mostly-failed
+    run is not a result lives in aistat.evaluation.liveness, shared with the
+    report writer so the two cannot disagree.
     """
-    d = ROOT / "results"
-    for p in sorted(d.glob("heldout_*_scores.jsonl")):
-        if "rulebased" in p.name:
-            continue
-        if sum(1 for _ in p.open()) > 0:
-            return p
-    return None
+    return best_live_heldout(ROOT / "results")
+
+
+def _failed_attempts_note():
+    """Say so when a run was attempted and did not produce a usable result."""
+    return failed_attempts_note(ROOT / "results")
 
 
 
@@ -131,12 +149,17 @@ def _eval():
     tables = list((ROOT / "reports").glob("*_system_summary.csv"))
     live = _any_live_heldout()
     if not live:
-        return None, ("no live held-out run recorded. FREE options: "
+        return None, (_failed_attempts_note()
+                      + "no usable live held-out run recorded. FREE options: "
                       "`make eval-free PROVIDER=groq` (free key) or "
                       "PROVIDER=ollama (local, no key). Paid: ~$34 Opus / "
                       f"~$10 Haiku. Offline study complete: {n} runs, "
                       f"{len(SYSTEMS)} systems, {len(tables)} table sets")
-    return True, f"live held-out run recorded: {live.name}"
+    path, ok, tot = live
+    lost = tot - ok
+    return True, (f"live held-out run recorded: {path.name} -- {ok}/{tot} runs "
+                  f"reached a method decision"
+                  + (f", {lost} did not and are excluded" if lost else ""))
 
 
 @check("12.5", "Capstone report with results, error analysis, limitations")
@@ -217,21 +240,45 @@ def _tests():
                         "-p", "no:cacheprovider"],
                        cwd=ROOT, capture_output=True, text=True, timeout=1200)
     line = [l for l in r.stdout.splitlines() if "passed" in l]
-    return r.returncode == 0, line[-1].strip() if line else r.stdout[-200:]
+    # Drop the wall-clock duration.  It changes on every run, and this detail
+    # string is written into the tracked reports/conformance.json -- so keeping
+    # it meant the file was dirty after every `make conformance`, which blocked
+    # every branch switch and made the artefact non-reproducible for no
+    # information gain.  How long the suite took is not a conformance fact.
+    detail = re.sub(r"\s+in\s+[\d.]+s\b", "", line[-1].strip()) if line \
+        else r.stdout[-200:]
+    return r.returncode == 0, detail
 
 
 @check("DoD.3", "Held-out evaluation with frozen prompts, complete run record")
 def _heldout():
     live = _any_live_heldout()
     if not live:
-        return None, ("not run. Everything around it is in place -- prompt "
+        return None, (_failed_attempts_note()
+                      + "no usable run. Everything around it is in place -- prompt "
                       "freeze, resumable runner, budget guard, live-path smoke "
                       "test. Runnable at zero cost with "
                       "`make eval-free PROVIDER=ollama` (local) or a free "
                       "provider key")
-    import pandas as pd
-    n = sum(1 for _ in live.open())
-    return True, f"{n} runs recorded in {live.name}"
+    path, ok, tot = live
+    mf_path = path.with_name(path.name.replace("_scores.jsonl",
+                                               "_manifest.json"))
+    mf = json.loads(mf_path.read_text()) if mf_path.exists() else {}
+    planned, frozen = mf.get("n_planned"), mf.get("prompt_sha256_16")
+
+    notes = [f"{ok}/{tot} runs reached a method decision"]
+    if tot - ok:
+        notes.append(f"{tot - ok} never got that far and are excluded")
+    if planned:
+        notes.append(f"{tot} of {planned} planned runs recorded")
+    notes.append(f"prompt hash {frozen} frozen in manifest" if frozen
+                 else "NO frozen prompt hash in manifest")
+
+    # "complete run record" is the requirement, so check it rather than
+    # accepting the mere existence of a file: every planned run present, and
+    # the prompt hash recorded so the run is reproducible.
+    complete = bool(frozen) and (planned is None or tot >= planned)
+    return complete, f"{path.name}: " + "; ".join(notes)
 
 
 @check("DoD.4", "Every numerical claim maps to a tool output")
@@ -280,11 +327,47 @@ def _malformed():
 def _uplift():
     t = (ROOT / "docs" / "CAPSTONE_REPORT.md").read_text()
     has = "Uplift" in t and "McNemar" in t
-    live = ROOT / "results" / "heldout_claude-opus-5_scores.jsonl"
-    if has and not live.exists():
+    live = _any_live_heldout()
+    if has and not live:
         return True, ("stated from development-set evidence and explicitly "
                       "labelled preliminary; held-out confirmation outstanding")
     return has, "uplift and paired test reported"
+
+
+@check("Docs", "Counts quoted in the docs match the artefacts they describe")
+def _doc_counts():
+    """Stale numbers in a document are indistinguishable from careless ones.
+
+    The README quoted 113 tests in one place and 168 in another while the suite
+    held 241.  Nothing downstream broke, which is exactly why it survived: no
+    check disagreed with it.  This one does.
+    """
+    import re
+    problems = []
+
+    readme = (ROOT / "README.md").read_text()
+    n_tests = len(list((ROOT / "tests").glob("test_*.py")))
+    quoted = {int(m) for m in re.findall(r"(\d+) tests", readme)}
+    actual = _pytest_count()
+    if actual and quoted - {actual}:
+        problems.append(f"README quotes {sorted(quoted)} tests, suite has {actual}")
+
+    n_figs = len(list((ROOT / "reports" / "figures").glob("fig*.png")))
+    fin = (ROOT / "FINISH.md").read_text()
+    m = re.search(r"\| Figures \| (\d+)", fin)
+    if m and int(m.group(1)) != n_figs:
+        problems.append(f"FINISH.md says {m.group(1)} figures, {n_figs} exist")
+
+    n_dev = len(re.findall(r"^## \d+\. ", (ROOT / "docs" / "DEVIATIONS.md")
+                           .read_text(), re.M))
+    if f"{_WORDS.get(n_dev, n_dev)} amendments" not in readme:
+        problems.append(f"README does not say '{_WORDS.get(n_dev, n_dev)} "
+                        f"amendments' for {n_dev} deviations")
+
+    return (not problems,
+            "; ".join(problems) if problems else
+            f"{actual} tests, {n_figs} figures, {n_dev} deviations, "
+            f"{n_tests} test modules -- documents agree")
 
 
 @check("8.3", "Interpretation metric: blinded, double-scored, agreement reported")
