@@ -1,0 +1,9 @@
+system,failure_stage,n
+A_direct,design_validation,13
+A_direct,diagnostic_reasoning,8
+A_direct,problem_parsing,3
+B_tools,design_validation,20
+B_tools,diagnostic_reasoning,12
+C_protocol,diagnostic_reasoning,6
+C_protocol,design_validation,4
+C_protocol,problem_parsing,1
