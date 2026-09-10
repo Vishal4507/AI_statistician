@@ -1,5 +1,8 @@
 # AI Statistician
 
+**Live:** <https://ai-statistician.netlify.app> — the benchmark explorer, all 64
+cases, every rendered report and trace.
+
 LLM-guided selection, validation, execution and interpretation of statistical
 methods. The system receives a dataset, an analytical question and a design
 card; selects a method from a closed library of 14; executes it through

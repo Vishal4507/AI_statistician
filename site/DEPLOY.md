@@ -1,5 +1,9 @@
 # Deploying the explorer
 
+Currently deployed at <https://ai-statistician.netlify.app>
+(Netlify project `ai-statistician`, site id `888411cf-9a46-44ea-a6c6-9ce5c3c24982`).
+Redeploy after any new evaluation with `make site` then a fresh Netlify deploy.
+
 The site is static: no build step, no backend, no environment variables.
 
 ## Fastest — drag and drop (about 30 seconds)
