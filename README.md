@@ -9,7 +9,7 @@ card; selects a method from a closed library of 14; executes it through
 validated SciPy and statsmodels tools; checks diagnostics; and produces a
 traceable interpretation — or abstains when no supported method is valid.
 
-Implements the capstone blueprint with four amendments recorded in
+Implements the capstone blueprint with eight amendments recorded in
 [`docs/DEVIATIONS.md`](docs/DEVIATIONS.md).
 
 ## The claim this codebase defends
@@ -28,7 +28,7 @@ make setup && make all
 ```
 
 That downloads the four UCI datasets, builds all 64 case packages, validates
-them, runs 113 tests, executes a 432-run offline evaluation, and rebuilds every
+them, runs 241 tests, executes a 432-run offline evaluation, and rebuilds every
 result table. It needs no API key and takes about three minutes.
 
 ### Running it for free
@@ -228,7 +228,7 @@ single-method label on a case where two methods were defensible.
 ## Testing
 
 ```bash
-make test     # 168 tests
+make test     # 241 tests
 ```
 
 At least two numerical tests per method, checked against values that are

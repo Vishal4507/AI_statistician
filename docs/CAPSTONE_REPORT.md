@@ -1,6 +1,6 @@
 # AI Statistician — capstone report
 
-*Generated 2026-09-09 from `results/*.jsonl`.
+*Generated 2026-09-10 from `results/*.jsonl`.
 Regenerate with `python scripts/write_capstone.py`.*
 
 ---
@@ -54,8 +54,8 @@ is made impossible:
 The consequence must be stated honestly: for System C, numerical fidelity is an
 **architectural guarantee, not an empirical finding**. The empirical counterpart
 is the provenance rejection rate — how often the model reached for a reference
-that did not exist. Across every live run recorded here that count is
-**0**.
+that did not exist. Across every live run recorded here — 368 runs on
+the development and held-out splits — that count is **27**.
 
 For Systems A and B nothing is enforced, so fidelity remains an empirical metric
 there and the comparison stays meaningful.
@@ -104,14 +104,14 @@ repetitions rather than claiming to eliminate it.
 
 ### 5.1 Live evidence — Claude Opus 5, development set
 
-**76 clean runs** (44 at `high` effort, 32 at
+**80 runs that reached a method decision** (48 at `high` effort, 32 at
 `medium`). This is the development set, not the held-out set.
 
 | System | n | Accuracy | 95% CI | Abstention recall | Unsafe rate | Tool calls |
 |---|---|---|---|---|---|---|
-| A · Direct LLM | 15 | 0.867 | [0.621, 0.963] | 0.33 | 0.133 | 2.3 |
+| A · Direct LLM | 16 | 0.875 | [0.640, 0.965] | 0.33 | 0.125 | 2.2 |
 | B · LLM with tools | 16 | 0.500 | [0.280, 0.720] | 0.00 | 0.188 | 4.5 |
-| C · Structured agent | 13 | 1.000 | [0.772, 1.000] | 1.00 | 0.000 | 2.8 |
+| C · Structured agent | 16 | 0.938 | [0.717, 0.989] | 1.00 | 0.000 | 2.9 |
 
 ![Figure 1 — Method-selection accuracy with Wilson 95% intervals. The live panel is preliminary; the offline panel is the calibration run.](figures/fig1_accuracy.png)
 
@@ -125,22 +125,22 @@ repetitions rather than claiming to eliminate it.
 
 **Paired comparison, B versus C** — the comparison that answers the research
 question, since both have identical tools and report schemas and differ only in
-whether an ordered protocol governs their use. On the 13 cases both
+whether an ordered protocol governs their use. On the 16 cases both
 systems completed:
 
 | | |
 |---|---|
-| System B accuracy | 0.462 |
-| System C accuracy | 1.000 |
-| Uplift | **+0.538** |
-| Bootstrap 95% CI | [+0.231, +0.769] |
+| System B accuracy | 0.500 |
+| System C accuracy | 0.938 |
+| Uplift | **+0.438** |
+| Bootstrap 95% CI | [+0.188, +0.688] |
 | McNemar exact p | **0.0156** |
 | Discordant pairs | 7 in C's favour, 0 in B's |
 
 The discordance is entirely one-directional: 7 cases where the
 protocol was right and the unconstrained baseline wrong, and 0 the
 other way. The blueprint's target was ≥10 percentage points of uplift; the
-observed value is 54.
+observed value is 44.
 
 **Abstention is where the systems separate most sharply.** On the design-hazard
 cases the structured agent abstained every time; the tool-enabled baseline never
@@ -152,15 +152,13 @@ fails. That is the failure this project exists to prevent.
 These results are **preliminary and must not be presented as the headline
 experiment**:
 
-- **Development set, not held out.** Prompts were developed against these cases.
-  The held-out estimate is the one that counts, and it has not been run.
-- **Small samples.** 44 clean runs across three systems; the widest
+- **Development set, not held out.** Prompts were developed against these cases,
+  so these numbers are optimistic. The held-out estimate is the one that counts;
+  it is in §5.4.
+- **Small samples.** 48 runs across three systems; the widest
   confidence interval spans 0.23.
 - **One repetition.** Run-to-run variance is unmeasured.
-- **4 runs lost to harness errors** rather than statistical failure
-  (a raw numeric literal, and two references to string-valued fields). All three
-  causes have since been fixed and are covered by regression tests, but the
-  affected runs were not repeated.
+- **Runs whose report was rejected are kept, not dropped.** Such a run chose a method and ran it; only the write-up failed the provenance contract, and the choice is what these numbers measure. Excluding them would quietly improve whichever system fails the contract most often.
 - **Only System C at `medium` effort is missing entirely** — the account ran out
   of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
 
@@ -203,13 +201,49 @@ worse.
 
 ### 5.4 Held-out evaluation
 
-**Not yet run.** This is the single outstanding deliverable. It requires
-API credit: approximately $34 for two repetitions on Claude Opus 5, or $10 on
-Haiku 4.5. The runner is resumable and the benchmark is frozen, so it can be
-executed at any point without invalidating anything above.
+The frozen held-out split was executed against a live model on 2026-09-10. Configuration `anthropic:claude-haiku-4-5:high:think=1`, 2 repetitions, 48 cases, 288 runs recorded, every one of which reached a method decision.
 
-Everything needed to run it exists and is tested: `make eval-live` validates the
-live path first and refuses to start work the budget cannot finish.
+| System | n | Selection accuracy | 95% CI (Wilson) | Abstention recall | Unsafe rate | Tool calls |
+|---|---|---|---|---|---|---|
+| A · Direct LLM | 96 | 0.750 | [0.655, 0.826] | 0.28 | 0.135 | 2.2 |
+| B · LLM with tools | 96 | 0.667 | [0.568, 0.753] | 0.00 | 0.188 | 3.6 |
+| C · Structured agent | 96 | 0.885 | [0.806, 0.935] | 0.78 | 0.042 | 2.8 |
+
+#### Whether the report could be grounded
+
+Selecting a method is half the task. The other half is saying what was found without inventing any part of it, and on this run 51 of 288 finished analyses failed that test: the report contained a raw number that no tool produced, or a reference to a result the system never computed. The provenance contract rejects both, so the failures are counted here rather than shipped as prose a reader would have to check by hand.
+
+| System | n | Reports rejected | Valid-report rate | 95% CI (Wilson) |
+|---|---|---|---|---|
+| A · Direct LLM | 96 | 43 | 0.552 | [0.453, 0.648] |
+| B · LLM with tools | 96 | 0 | 1.000 | [0.962, 1.000] |
+| C · Structured agent | 96 | 8 | 0.917 | [0.844, 0.957] |
+
+These runs are kept in the accuracy table above. They chose a method, and the choice is what that table measures; removing them would silently improve whichever system fails the contract most often, which is precisely the system whose failure matters most.
+
+**Tool access alone against the protocol.** On the 48 cases both systems attempted, System C selected correctly 89.6% of the time against System B's 64.6% — an uplift of +25.0%, case-level bootstrap 95% CI [+0.125, +0.396]. The disagreements split 13 to 1 in C's favour; McNemar's exact test gives p = 0.0018. The pairing is over cases, not runs: repetitions are collapsed to a per-case majority, so 2 runs of the same case are not counted as 2 independent trials. On 25 of the 144 system-case cells the two runs disagreed, leaving no majority; those are decided by the first repetition. Per system: A · Direct LLM 6, B · LLM with tools 14, C · Structured agent 5. This is the held-out confirmation of the development-set result in §5.1.
+
+**No tools against the protocol.** System C 89.6% versus System A 77.1%, uplift +12.5%, McNemar p = 0.0703 — **not significant** at the 0.05 level on 48 cases. The protocol is ahead of the no-tool baseline by a margin this evaluation is too small to establish, and it should be read as unresolved rather than as a null result: the discordant pairs run 7 to 1 in C's favour, which is a direction, not a finding.
+
+**Tools did not help.** The comparison the design did not anticipate is A against B. Adding tools without a protocol to govern them did not improve selection and the point estimate moves the wrong way: System A 77.1% against System B's 64.6%, a change of -12.5% (McNemar p = 0.1094, not significant, so the deficit itself is not established). What *is* established is the mechanism behind it. System B abstained on none of the design-hazard cases and carried the highest unsafe-selection rate of the three — tool access let it produce an answer everywhere, including on the cases whose correct action was to decline. Read with §5.4's first comparison, this is the project's premise stated negatively: the gain in System C tracks the ordering rather than the tools, because the same tools without the ordering gain nothing.
+
+**What this evaluation does not establish.**
+
+- **The model is `claude-haiku-4-5`, not Claude Opus 5.** Every claim in this section is a claim about that model. The design is model-agnostic and the runner accepts any model id, but nothing here should be read as a general statement about frontier models.
+- **2 repetitions, not three.** This was a budget decision: three repetitions cost more than the credit available and would have halted partway, leaving an incomplete evaluation. Variance is estimated across 2 runs per cell — enough to expose gross instability, not enough to characterise the distribution. The intervals above are over cases, not over repetitions.
+
+
+![Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.](figures/fig5_heldout_accuracy.png)
+
+*Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.*
+
+![Figure 6 — Held-out risk-coverage for the live model.](figures/fig6_heldout_risk_coverage.png)
+
+*Figure 6 — Held-out risk-coverage for the live model.*
+
+![Figure 7 — Where each system fails on the held-out set, by stage of the error taxonomy.](figures/fig7_heldout_failures.png)
+
+*Figure 7 — Where each system fails on the held-out set, by stage of the error taxonomy.*
 
 ### 5.5 Interpretation scoring — a reliability failure
 

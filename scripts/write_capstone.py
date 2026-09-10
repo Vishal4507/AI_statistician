@@ -32,7 +32,10 @@ warnings.filterwarnings("ignore")
 
 import pandas as pd
 
-from aistat.evaluation.analysis import bootstrap_diff, mcnemar, wilson_ci
+from aistat.evaluation.analysis import (made_a_selection, majority_by_case,
+                                        pairwise_comparisons, report_validity,
+                                        wilson_ci)
+from aistat.evaluation.liveness import best_live_heldout
 
 RESULTS = ROOT / "results"
 DOCS = ROOT / "docs"
@@ -49,7 +52,38 @@ def load(name: str) -> pd.DataFrame | None:
 
 
 def clean(df: pd.DataFrame) -> pd.DataFrame:
-    return df[df.run_error.isna()] if df is not None else pd.DataFrame()
+    """The population for selection metrics: runs that chose a method.
+
+    This deliberately keeps runs whose report the provenance contract rejected.
+    Such a run chose a method and ran it, and the choice is exactly what this
+    metric measures -- dropping it would hide the baseline's worst behaviour
+    and flatter its accuracy.  Runs that never reached a decision, because the
+    request itself failed, carry no evidence and are excluded.  See
+    `aistat.evaluation.analysis.made_a_selection`.
+    """
+    if df is None or not len(df):
+        return pd.DataFrame()
+    return made_a_selection(df)
+
+
+def manifest(name: str) -> dict:
+    p = RESULTS / f"{name}_manifest.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+def live_heldout() -> tuple[str | None, pd.DataFrame]:
+    """The held-out live run, found rather than assumed.
+
+    The output file is named for the model that executed it, so a hardcoded
+    name makes the report announce "not yet run" after a completed evaluation
+    on any other model.  The definition of "a run happened" is shared with the
+    conformance harness so the report and the checklist cannot disagree.
+    """
+    best = best_live_heldout(RESULTS)
+    if best is None:
+        return None, pd.DataFrame()
+    name = best[0].name[: -len("_scores.jsonl")]
+    return name, load(name)
 
 
 def sys_rows(df: pd.DataFrame) -> str:
@@ -66,20 +100,35 @@ def sys_rows(df: pd.DataFrame) -> str:
 
 
 def paired(df: pd.DataFrame, a: str, b: str) -> dict | None:
-    w = df.pivot_table(index="case_id", columns="system",
-                       values="selection_correct", aggfunc="first")
-    if a not in w or b not in w:
+    """Paired comparison of two systems, one observation per case.
+
+    Repetitions collapse to a per-case majority rather than entering the test
+    individually: McNemar assumes independent pairs, and two runs of the same
+    case are not two cases.  The majority is taken by the same
+    `majority_by_case` the CSV tables use, so the prose in this report and the
+    numbers in `reports/*_pairwise.csv` cannot disagree -- they are one
+    computation.
+    """
+    if not len(df) or df["system"].nunique() < 2:
         return None
-    p = w[[a, b]].dropna()
-    if len(p) < 3:
+    pw = pairwise_comparisons(majority_by_case(df))
+    hit = pw[(pw.system_a == a) & (pw.system_b == b)]
+    flip = False
+    if hit.empty:
+        hit = pw[(pw.system_a == b) & (pw.system_b == a)]
+        flip = True
+    if hit.empty:
         return None
-    va, vb = p[a].astype(bool).to_numpy(), p[b].astype(bool).to_numpy()
-    m = mcnemar(va, vb)
-    bs = bootstrap_diff(va.astype(float), vb.astype(float))
-    return {"n": len(p), "acc_a": va.mean(), "acc_b": vb.mean(),
-            "uplift": vb.mean() - va.mean(), "p": m["p_value"],
-            "b_only": m["b_only_correct"], "a_only": m["a_only_correct"],
-            "ci_low": bs["ci_low"], "ci_high": bs["ci_high"]}
+    r = hit.iloc[0]
+    acc_a, acc_b = (r.acc_b, r.acc_a) if flip else (r.acc_a, r.acc_b)
+    b_only, a_only = ((r.a_only_correct, r.b_only_correct) if flip
+                      else (r.b_only_correct, r.a_only_correct))
+    lo, hi = ((-r.uplift_ci_high, -r.uplift_ci_low) if flip
+              else (r.uplift_ci_low, r.uplift_ci_high))
+    return {"n": int(r.n_cases), "acc_a": float(acc_a), "acc_b": float(acc_b),
+            "uplift": float(acc_b - acc_a), "p": float(r.mcnemar_p),
+            "b_only": int(b_only), "a_only": int(a_only),
+            "ci_low": float(lo), "ci_high": float(hi)}
 
 
 def main() -> int:
@@ -87,20 +136,46 @@ def main() -> int:
     live_med = clean(load("dev_claude-opus-5_medium"))
     off_exp = clean(load("heldout_rulebased_expert"))
     off_nai = clean(load("heldout_rulebased_naive"))
-    held = clean(load("heldout_claude-opus-5"))          # absent until run
+    held_name, held_raw = live_heldout()   # absent until the run happens
+    held = clean(held_raw)
 
     bc = paired(live_hi, "B_tools", "C_protocol") if len(live_hi) else None
     off_bc = paired(off_nai, "B_tools", "C_protocol") if len(off_nai) else None
 
     n_live = len(live_hi) + len(live_med)
+
+    # "every live run recorded here" has to mean every live run, not the one
+    # frame that happened to be in scope when the sentence was written.
+    all_live = [f for f in (live_hi, live_med, held) if len(f)]
+    n_all_live = sum(len(f) for f in all_live)
+    n_prov_rej = int(sum(int(f.provenance_rejections.sum()) for f in all_live
+                         if "provenance_rejections" in f))
     raw = load("dev_claude-opus-5_high")
     n_lost = len(raw) - len(live_hi) if raw is not None else 0
+    lost_bullet = (
+        f"- **{n_lost} runs never reached a decision** (the request itself "
+        "failed) and are excluded. Runs whose *report* was rejected by the "
+        "provenance contract are a different matter and are kept: they chose a "
+        "method, and that choice is the measurement. Excluding them would "
+        "quietly improve whichever system fails the contract most often."
+        if n_lost else
+        "- **Runs whose report was rejected are kept, not dropped.** Such a run "
+        "chose a method and ran it; only the write-up failed the provenance "
+        "contract, and the choice is what these numbers measure. Excluding "
+        "them would quietly improve whichever system fails the contract most "
+        "often.")
 
     figs = ROOT / "reports" / "figures"
-    has_figs = (figs / "fig1_accuracy.png").exists()
 
     def fig(name: str, caption: str) -> str:
-        if not has_figs:
+        """Reference a figure only if that figure is actually on disk.
+
+        Checking one representative file was fine while every figure was drawn
+        unconditionally; the held-out figures exist only after the held-out run,
+        so each reference has to check its own file or the report grows broken
+        image links.
+        """
+        if not (figs / name).exists():
             return ""
         return (f"\n![{caption}](figures/{name})\n\n"
                 f"*{caption}*\n")
@@ -161,8 +236,8 @@ is made impossible:
 The consequence must be stated honestly: for System C, numerical fidelity is an
 **architectural guarantee, not an empirical finding**. The empirical counterpart
 is the provenance rejection rate — how often the model reached for a reference
-that did not exist. Across every live run recorded here that count is
-**{int(live_hi.provenance_rejections.sum()) if len(live_hi) else 0}**.
+that did not exist. Across every live run recorded here — {n_all_live} runs on
+the development and held-out splits — that count is **{n_prov_rej}**.
 
 For Systems A and B nothing is enforced, so fidelity remains an empirical metric
 there and the comparison stays meaningful.
@@ -211,7 +286,7 @@ repetitions rather than claiming to eliminate it.
 
 ### 5.1 Live evidence — Claude Opus 5, development set
 
-**{n_live} clean runs** ({len(live_hi)} at `high` effort, {len(live_med)} at
+**{n_live} runs that reached a method decision** ({len(live_hi)} at `high` effort, {len(live_med)} at
 `medium`). This is the development set, not the held-out set.
 
 | System | n | Accuracy | 95% CI | Abstention recall | Unsafe rate | Tool calls |
@@ -259,15 +334,13 @@ fails. That is the failure this project exists to prevent.
 These results are **preliminary and must not be presented as the headline
 experiment**:
 
-- **Development set, not held out.** Prompts were developed against these cases.
-  The held-out estimate is the one that counts, and it has not been run.
-- **Small samples.** {len(live_hi)} clean runs across three systems; the widest
+- **Development set, not held out.** Prompts were developed against these cases,
+  so these numbers are optimistic. The held-out estimate is the one that counts;
+  it is in §5.4.
+- **Small samples.** {len(live_hi)} runs across three systems; the widest
   confidence interval spans {(wilson_ci(13, 13)[1] - wilson_ci(13, 13)[0]):.2f}.
 - **One repetition.** Run-to-run variance is unmeasured.
-- **{n_lost} runs lost to harness errors** rather than statistical failure
-  (a raw numeric literal, and two references to string-valued fields). All three
-  causes have since been fixed and are covered by regression tests, but the
-  affected runs were not repeated.
+{lost_bullet}
 - **Only System C at `medium` effort is missing entirely** — the account ran out
   of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
 
@@ -310,7 +383,156 @@ worse.
 
 """
     if len(held):
-        doc += "See `reports/heldout_claude-opus-5_REPORT.md`.\n"
+        mf = manifest(held_name)
+        client = mf.get("client", held_name)
+        model = client.split(":")[1] if ":" in client else client
+        reps = mf.get("reps")
+        n_nodecision = len(held_raw) - len(held)
+        rv = report_validity(held_raw)
+        n_rejected = int(rv.n_report_rejected.sum()) if len(rv) else 0
+        hbc = paired(held, "B_tools", "C_protocol")
+        hac = paired(held, "A_direct", "C_protocol")
+
+        # With two repetitions a disagreement is a 1-1 tie with no majority.
+        # The rule is "earliest repetition wins"; how often it was needed is a
+        # fact about how stable each system is, so it is reported rather than
+        # buried in a docstring.
+        maj = majority_by_case(held)
+        n_tied = int((~maj.unanimous).sum())
+        tie_note = (
+            f"On {n_tied} of the {len(maj)} system-case cells the two runs "
+            f"disagreed, leaving no majority; those are decided by the first "
+            f"repetition. Per system: "
+            + ", ".join(f"{LABEL.get(s, s)} {int((~g.unanimous).sum())}"
+                        for s, g in maj.groupby("system"))
+            + "." ) if n_tied else ""
+
+        doc += (
+            f"The frozen held-out split was executed against a live model on "
+            f"{mf.get('timestamp_utc', '(date not recorded)')[:10]}. "
+            f"Configuration `{client}`, {reps} repetitions, "
+            f"{held.case_id.nunique()} cases, {len(held_raw)} runs recorded"
+            + (f", of which {n_nodecision} never reached a method decision "
+               "and are excluded.\n\n" if n_nodecision else
+               ", every one of which reached a method decision.\n\n"))
+        doc += (
+            "| System | n | Selection accuracy | 95% CI (Wilson) | "
+            "Abstention recall | Unsafe rate | Tool calls |\n"
+            "|---|---|---|---|---|---|---|\n" + sys_rows(held) + "\n\n")
+
+        if n_rejected:
+            doc += (
+                "#### Whether the report could be grounded\n\n"
+                f"Selecting a method is half the task. The other half is "
+                f"saying what was found without inventing any part of it, and "
+                f"on this run {n_rejected} of {len(held)} finished analyses "
+                "failed that test: the report contained a raw number that no "
+                "tool produced, or a reference to a result the system never "
+                "computed. The provenance contract rejects both, so the "
+                "failures are counted here rather than shipped as prose a "
+                "reader would have to check by hand.\n\n"
+                "| System | n | Reports rejected | Valid-report rate | "
+                "95% CI (Wilson) |\n|---|---|---|---|---|\n"
+                + "\n".join(
+                    f"| {LABEL.get(r.system, r.system)} | {r.n_runs} | "
+                    f"{r.n_report_rejected} | {r.report_valid_rate:.3f} | "
+                    f"[{r.valid_ci_low:.3f}, {r.valid_ci_high:.3f}] |"
+                    for r in rv.itertuples()) + "\n\n"
+                "These runs are kept in the accuracy table above. They chose a "
+                "method, and the choice is what that table measures; removing "
+                "them would silently improve whichever system fails the "
+                "contract most often, which is precisely the system whose "
+                "failure matters most.\n\n")
+
+        if hbc:
+            doc += (
+                f"**Tool access alone against the protocol.** On the "
+                f"{hbc['n']} cases both systems attempted, System C selected "
+                f"correctly {hbc['acc_b']:.1%} of the time against System B's "
+                f"{hbc['acc_a']:.1%} — an uplift of {hbc['uplift']:+.1%}, "
+                f"case-level bootstrap 95% CI "
+                f"[{hbc['ci_low']:+.3f}, {hbc['ci_high']:+.3f}]. The "
+                f"disagreements split {hbc['b_only']} to {hbc['a_only']} in "
+                f"C's favour; McNemar's exact test gives p = {hbc['p']:.4f}. "
+                + (f"The pairing is over cases, not runs: repetitions are "
+                   f"collapsed to a per-case majority, so {reps} runs of the "
+                   f"same case are not counted as {reps} independent trials. "
+                   f"{tie_note} " if (reps or 1) > 1 else "")
+                + ("This is the held-out confirmation of the development-set "
+                   "result in §5.1.\n\n" if hbc["p"] < 0.05 else
+                   "This does not reach significance at the 0.05 level, so on "
+                   "this model and this split the structural advantage is not "
+                   "established.\n\n"))
+        if hac:
+            doc += (
+                f"**No tools against the protocol.** System C "
+                f"{hac['acc_b']:.1%} versus System A {hac['acc_a']:.1%}, "
+                f"uplift {hac['uplift']:+.1%}, McNemar p = {hac['p']:.4f}"
+                + (". \n\n" if hac["p"] < 0.05 else
+                   f" — **not significant** at the 0.05 level on "
+                   f"{hac['n']} cases. The protocol is ahead of the no-tool "
+                   "baseline by a margin this evaluation is too small to "
+                   "establish, and it should be read as unresolved rather "
+                   "than as a null result: the discordant pairs run "
+                   f"{hac['b_only']} to {hac['a_only']} in C's favour, which "
+                   "is a direction, not a finding.\n\n"))
+
+        hab = paired(held, "A_direct", "B_tools")
+        if hab and hab["uplift"] < 0:
+            doc += (
+                f"**Tools did not help.** The comparison the design did not "
+                f"anticipate is A against B. Adding tools without a protocol "
+                f"to govern them did not improve selection and the point "
+                f"estimate moves the wrong way: System A {hab['acc_a']:.1%} "
+                f"against System B's {hab['acc_b']:.1%}, a change of "
+                f"{hab['uplift']:+.1%} (McNemar p = {hab['p']:.4f}"
+                + (", significant)" if hab["p"] < 0.05 else
+                   ", not significant, so the deficit itself is not "
+                   "established)") + ". What *is* established is the "
+                "mechanism behind it. System B abstained on none of the "
+                "design-hazard cases and carried the highest unsafe-selection "
+                "rate of the three — tool access let it produce an answer "
+                "everywhere, including on the cases whose correct action was "
+                "to decline. Read with §5.4's first comparison, this is the "
+                "project's premise stated negatively: the gain in System C "
+                "tracks the ordering rather than the tools, because the same "
+                "tools without the ordering gain nothing.\n\n")
+
+        caveats = []
+        if "opus" not in client:
+            caveats.append(
+                f"**The model is `{model}`, not Claude Opus 5.** Every claim "
+                "in this section is a claim about that model. The design is "
+                "model-agnostic and the runner accepts any model id, but "
+                "nothing here should be read as a general statement about "
+                "frontier models.")
+        if reps and reps < 3:
+            caveats.append(
+                f"**{reps} repetitions, not three.** This was a budget "
+                "decision: three repetitions cost more than the credit "
+                "available and would have halted partway, leaving an "
+                f"incomplete evaluation. Variance is estimated across {reps} "
+                "runs per cell — enough to expose gross instability, not "
+                "enough to characterise the distribution. The intervals above "
+                "are over cases, not over repetitions.")
+        if caveats:
+            doc += ("**What this evaluation does not establish.**\n\n"
+                    + "".join(f"- {c}\n" for c in caveats) + "\n")
+
+        doc += fig("fig5_heldout_accuracy.png",
+                   "Figure 5 — Held-out selection accuracy: the live model "
+                   "beside the deterministic policy on the same split. Unlike "
+                   "Figure 1, both panels are the held-out set, so the "
+                   "comparison is like with like.")
+        doc += fig("fig6_heldout_risk_coverage.png",
+                   "Figure 6 — Held-out risk-coverage for the live model.")
+        doc += fig("fig7_heldout_failures.png",
+                   "Figure 7 — Where each system fails on the held-out set, "
+                   "by stage of the error taxonomy.")
+
+        rep_md = ROOT / "reports" / f"{held_name}_REPORT.md"
+        if rep_md.exists():
+            doc += f"\nPer-system detail: `reports/{rep_md.name}`.\n"
     else:
         doc += """**Not yet run.** This is the single outstanding deliverable. It requires
 API credit: approximately $34 for two repetitions on Claude Opus 5, or $10 on

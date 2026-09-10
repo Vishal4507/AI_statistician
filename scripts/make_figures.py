@@ -34,7 +34,8 @@ logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from aistat.evaluation.analysis import wilson_ci
+from aistat.evaluation.analysis import made_a_selection, wilson_ci
+from aistat.evaluation.liveness import best_live_heldout
 
 FIGS = ROOT / "reports" / "figures"
 RESULTS = ROOT / "results"
@@ -70,7 +71,9 @@ def load(name: str) -> pd.DataFrame:
     if not p.exists():
         return pd.DataFrame()
     df = pd.DataFrame([json.loads(l) for l in p.read_text().splitlines() if l.strip()])
-    return df[df.run_error.isna()] if len(df) else df
+    # Runs whose report was rejected are kept: they chose a method, and these
+    # figures plot the choice.  Only runs that never reached a decision go.
+    return made_a_selection(df) if len(df) else df
 
 
 def title(ax, text: str, sub: str = "") -> None:
@@ -83,14 +86,23 @@ def title(ax, text: str, sub: str = "") -> None:
 
 # ---------------------------------------------------------------- figure 1
 
-def fig_accuracy(live: pd.DataFrame, offline: pd.DataFrame) -> None:
+def scale(df: pd.DataFrame) -> str:
+    """Describe a run set from the run set, so a caption cannot go stale."""
+    n_reps = int(df.rep.nunique()) if "rep" in df and len(df) else 1
+    word = {1: "one", 2: "two", 3: "three", 4: "four"}.get(n_reps, str(n_reps))
+    return (f"{len(df)} runs, {word} repetition"
+            + ("s" if n_reps != 1 else ""))
+
+
+def fig_accuracy(live: pd.DataFrame, offline: pd.DataFrame, *,
+                 heads: tuple[str, str] = ("Claude Opus 5 — development set",
+                                           "Offline policy — held-out set"),
+                 out: str = "fig1_accuracy.png") -> None:
     """Selection accuracy with Wilson intervals, live beside offline."""
     fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.1), sharex=True)
     fig.subplots_adjust(wspace=0.42)
-    panels = [(axes[0], live, "Claude Opus 5 — development set",
-               "44 clean runs, one repetition"),
-              (axes[1], offline, "Offline policy — held-out set",
-               "432 runs, three repetitions")]
+    panels = [(axes[0], live, heads[0], scale(live)),
+              (axes[1], offline, heads[1], scale(offline))]
 
     for ax, df, head, sub in panels:
         if df.empty:
@@ -129,13 +141,13 @@ def fig_accuracy(live: pd.DataFrame, offline: pd.DataFrame) -> None:
 
     fig.text(0.5, -0.06, "Method-selection accuracy · bars are Wilson 95% intervals",
              ha="center", fontsize=8.5, color=INK_3)
-    fig.savefig(FIGS / "fig1_accuracy.png")
+    fig.savefig(FIGS / out)
     plt.close(fig)
 
 
 # ---------------------------------------------------------------- figure 2
 
-def fig_risk_coverage(df: pd.DataFrame, name: str) -> None:
+def fig_risk_coverage(df: pd.DataFrame, name: str, out: str = "fig2_risk_coverage.png") -> None:
     """Selective accuracy against coverage -- the safety result.
 
     A system that abstains only when it should sits top-right. One that answers
@@ -180,13 +192,13 @@ def fig_risk_coverage(df: pd.DataFrame, name: str) -> None:
     ax.set_yticklabels(["40%", "60%", "80%", "100%"])
     ax.grid(True, zorder=0); ax.set_axisbelow(True)
     title(ax, "Risk–coverage", f"{name} · top-right is better")
-    fig.savefig(FIGS / "fig2_risk_coverage.png")
+    fig.savefig(FIGS / out)
     plt.close(fig)
 
 
 # ---------------------------------------------------------------- figure 3
 
-def fig_failures(df: pd.DataFrame, name: str) -> None:
+def fig_failures(df: pd.DataFrame, name: str, out: str = "fig3_failures.png") -> None:
     """Where each system fails, by stage of the error taxonomy."""
     f = df[df.failure_stage.notna()]
     if f.empty:
@@ -230,7 +242,7 @@ def fig_failures(df: pd.DataFrame, name: str) -> None:
               loc="upper center", bbox_to_anchor=(0.5, -0.28),
               labelcolor=INK_2, handlelength=1.6, columnspacing=1.6)
     title(ax, "Where each system fails", f"{name} · stage of the error taxonomy")
-    fig.savefig(FIGS / "fig3_failures.png")
+    fig.savefig(FIGS / out)
     plt.close(fig)
 
 
@@ -284,6 +296,25 @@ def main() -> int:
     fig_failures(naive if not naive.empty else offline,
                  "Naive policy, held-out set")
     fig_abstention(live, offline)
+
+    # The held-out live run, once it exists, supports a comparison the first
+    # four figures cannot: a real model and the deterministic policy on the
+    # same split.  Figure 1 puts a development-set run beside a held-out one,
+    # which is the best available until this run happens and the weaker
+    # comparison afterwards.
+    best = best_live_heldout(RESULTS)
+    if best is not None:
+        held = load(best[0].name[: -len("_scores.jsonl")])
+        model = best[0].name.split("heldout_")[1].split("_scores")[0]
+        if not held.empty:
+            fig_accuracy(held, offline,
+                         heads=(f"{model} — held-out set",
+                                "Offline policy — held-out set"),
+                         out="fig5_heldout_accuracy.png")
+            fig_risk_coverage(held, f"{model}, held-out set",
+                              out="fig6_heldout_risk_coverage.png")
+            fig_failures(held, f"{model}, held-out set",
+                         out="fig7_heldout_failures.png")
 
     for p in sorted(FIGS.glob("*.png")):
         print(f"  {p.name:26s} {p.stat().st_size/1024:6.0f} KB")

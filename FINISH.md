@@ -1,170 +1,170 @@
-# Finishing this project
+# Project status: complete
 
-State as of the last verification: **13 of 15 blueprint requirements met, 0 failing,
-2 blocked.** Both blocks are the same single thing — the live held-out evaluation.
+**All 15 blueprint requirements met, 0 failing, 0 blocked.**
 
-Verify this yourself at any time:
+`make conformance` reports 16 checks: the 15 the blueprint specifies, plus one
+this project imposed on itself — that the counts quoted in these documents match
+the artefacts they describe.
+
+Verify that claim yourself, from the artefacts, in one command:
 
 ```bash
-make conformance      # asserts every section 12 requirement against the artefacts
+make conformance
 ```
+
+It re-derives every §12 requirement and every definition-of-done item from the
+files in this repository and prints PASS / FAIL / BLOCK per requirement. Nothing
+in this document is asserted anywhere it is not also checked.
 
 ---
 
-## 1. What is already done
+## 1. What exists
 
 | | |
 |---|---|
 | System | 14 methods, 5 diagnostics, 3 system variants over one shared core |
-| Benchmark | 64 validated cases, 52 supported + 12 abstention, 16 dev / 48 held out |
-| Tests | 189 passing, including numerical checks against published values |
+| Benchmark | 64 validated cases — 52 supported, 12 abstention; 16 dev / 48 held out |
+| Tests | 241 passing, including numerical checks against published values |
 | Offline study | 432 runs at two policy-competence levels, fully powered |
-| Live preliminary | 44 clean Claude runs on dev: uplift +0.538, McNemar p = 0.0156 |
-| Figures | 4, generated from the logs |
+| Live, development | 80 runs on Claude Opus 5 |
+| **Live, held out** | **288 runs on Claude Haiku 4.5 — 48 cases × 3 systems × 2 reps** |
+| Figures | 7, all generated from the logs |
 | Site | <https://ai-statistician.netlify.app> |
-| §8.3 | Blinded round run, failed reliability, reported with diagnosis |
+| §8.3 | Blinded round run, failed its reliability check, reported with diagnosis |
 | Report | `docs/CAPSTONE_REPORT.md`, regenerates from logs |
 
 ---
 
-## 2. The one thing left
+## 2. The held-out result
 
-A held-out evaluation against a real model: 48 cases × 3 systems × N repetitions.
-Everything around it exists — frozen prompts, resumable runner, budget guard,
-credential pre-flight. Only inference capacity is missing.
+Every number below regenerates from `results/heldout_claude-haiku-4-5*.jsonl`.
 
-### Four routes, all tested
+### Method selection
 
-| Route | Time | Cost | Command |
+| System | n | Accuracy | 95% CI (Wilson) | Abstention recall | Unsafe rate |
+|---|---|---|---|---|---|
+| A · Direct LLM | 96 | 0.750 | [0.655, 0.826] | 0.28 | 0.135 |
+| B · LLM with tools | 96 | 0.667 | [0.568, 0.753] | 0.00 | 0.188 |
+| C · Structured agent | 96 | 0.885 | [0.806, 0.935] | 0.78 | 0.042 |
+
+### Paired comparisons, per-case majority over 48 cases
+
+| Comparison | Uplift | Bootstrap 95% CI | McNemar p | Reading |
+|---|---|---|---|---|
+| **C over B** | **+0.250** | [+0.125, +0.396] | **0.0018** | the research question, answered |
+| C over A | +0.125 | [+0.021, +0.250] | 0.0703 | direction only — not significant |
+| B over A | −0.125 | [−0.250, +0.000] | 0.1094 | tools alone did not help |
+
+**The claim the project set out to test holds.** An ordered protocol over the
+same tools and the same report schema beats unstructured tool use by 25
+percentage points, p = 0.0018. The blueprint's target was ≥10.
+
+**Two things it does not establish**, both stated in the report rather than
+left for a reader to notice. C over A does not clear 0.05 on 48 cases. And the
+A-versus-B deficit, while pointing the wrong way for tool access, is not
+significant either.
+
+### Whether the report could be grounded
+
+Selecting a method is half the task; the other half is saying what was found
+without inventing any of it.
+
+| System | Reports rejected | Valid-report rate | 95% CI |
 |---|---|---|---|
-| **Ollama, local** | ~8 h (1 rep) | free | see 2a |
-| **Groq free tier** | ~11 days | free | see 2b |
-| **Claude Haiku 4.5** | ~1 h | ~$10 | see 2c |
-| **Claude Opus 5** | ~1 h | ~$34 | see 2c |
+| A · Direct LLM | 43 / 96 | 0.552 | [0.453, 0.648] |
+| B · LLM with tools | 0 / 96 | 1.000 | [0.962, 1.000] |
+| C · Structured agent | 8 / 96 | 0.917 | [0.844, 0.957] |
 
-Measured on the development machine: Intel i7-1068NG7, no GPU offload, 26 tokens/s
-locally; Groq free tier caps at 200,000 tokens/day against ~2.2M needed for 432 runs.
+System A wrote an ungrounded number, or cited a diagnostic it never ran, in
+nearly half its analyses. The provenance contract caught every one.
 
-### 2a. Ollama — free, unlimited, slow
+---
 
-Already installed at `~/.local/bin/ollama` with `qwen2.5:7b` pulled.
+## 3. Two decisions that changed the numbers
+
+Both are recorded in `docs/DEVIATIONS.md` (§7, §8) and pinned by tests. They are
+here because they are the two places this project could most easily have
+reported something false.
+
+**A rejected report is a run, not a lost run.** 51 of 288 runs ended in an
+error, and not one was infrastructure. Each had already chosen a method and
+executed it; the write-up failed. 37 of the 51 had chosen *correctly*. Dropping
+them — the obvious thing to do with a row marked `run_error` — moves System A
+from 75.0% to 81.1% and deletes the baseline's worst behaviour from the headline.
+Runs that never reached a decision, such as the Groq attempt's 432
+authentication failures, are still excluded, because those carry no evidence.
+
+**Repetition ties are broken deterministically.** With two repetitions a
+disagreement has no majority. The tie was being resolved through `set` iteration
+order, which depends on `PYTHONHASHSEED` — so McNemar's p for A-versus-C moved
+between 0.016 and 0.125 across interpreter runs *on identical data*. Ties now go
+to the earliest repetition. `tests/test_analysis_determinism.py` re-runs the
+analysis in fresh interpreters under three hash seeds and requires identical
+output.
+
+---
+
+## 4. Reproducing everything
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
-export DYLD_LIBRARY_PATH="$HOME/.local/bin:$DYLD_LIBRARY_PATH"
-ollama serve &                                  # leave running
-
-cd ~/ai-statistician
-make check-provider PROVIDER=ollama             # confirm it responds
-python3 scripts/run_evaluation.py --client ollama --split heldout --reps 1 --workers 1
+make setup          # dependencies
+make data           # fetch and checksum the four UCI datasets
+make benchmark      # regenerate all 64 cases from the registry
+make validate       # schema and leakage checks
+make test           # 241 tests
+make eval           # 432-run offline study, no API key needed
+make analyze        # rebuild every table from the raw logs
+make capstone       # regenerate the report and figures
+make conformance    # assert all 15 requirements
 ```
 
-Roughly 8 hours for 144 runs. Safe to interrupt — rerun the same command and it
-resumes; only clean runs are skipped.
+Nothing above needs a network connection except `make data`.
 
-### 2b. Groq — free, but rationed
-
-`GROQ_API_KEY` goes in `.env` (see `.env.example`). Free key from
-<https://console.groq.com/keys>.
+To repeat the held-out evaluation against a live model:
 
 ```bash
-make check-provider PROVIDER=groq
-make eval-free PROVIDER=groq        # run once a day until complete
+cp .env.example .env        # add ANTHROPIC_API_KEY
+make eval-live              # pre-flights credentials before spending anything
 ```
 
-The daily cap will stop it partway; rerun tomorrow and it continues.
+The runner is resumable and flushes every 25 runs, so an interruption costs one
+batch rather than the whole evaluation. Re-running skips work already recorded.
 
-### 2c. Claude — fastest
+Free alternatives, if no credit is available:
 
 ```bash
-# ANTHROPIC_API_KEY in .env
-make smoke                          # validates the live path, a few cents
-make eval-live                      # 432 runs, ~$34 on Opus 5
-# or, cheaper:
-python3 scripts/run_evaluation.py --client anthropic --model claude-haiku-4-5 \
-    --split heldout --reps 3 --workers 4
+make eval-free PROVIDER=ollama     # local, no key, no cost
+make eval-free PROVIDER=groq       # free tier key
 ```
 
 ---
 
-## 3. After the run completes
+## 5. Packaging
 
 ```bash
-make analyze                        # rebuild every result table
-make capstone                       # regenerate the report with the new results
-make site && make artifact          # refresh the explorer
-make conformance                    # should now read 15 / 15
+make package        # builds the handoff zip
 ```
 
----
-
-## 4. Optional: close §8.3 properly
-
-The blinded interpretation round failed its reliability check (inter-rater
-κ = −0.044). That failure **is** reported honestly in report §5.5, and the project
-is complete with it. A second round would let you report the metric *as well*.
-
-The instrument has been rebuilt since: the rubric now states its scope, three
-calibration anchors are scored first with the answer revealed, and only the three
-judged sections are shown.
-
-```bash
-make blind RUN=heldout_<your run name>     # builds packet + score.html
-open reports/blinded/score.html            # calibrate, then score in 3 sittings
-# export the CSV over reports/blinded/scores_blank.csv
-make blind-ingest
-make reliability                           # states plainly whether it is usable
-```
-
-Budget ~45 minutes, not 20. Two raters, three sittings each. If κ clears 0.4 the
-metric is reportable; if not, §5.5 stands.
+The packager reads every file it is about to add and refuses to build an archive
+containing anything key-shaped, rather than relying on a deny-list to be
+complete. `.env` is excluded by name as well.
 
 ---
 
-## 5. What must be disclosed in the write-up
+## 6. Known limitations
 
-These are already in `docs/DEVIATIONS.md` and the report, but do not quietly drop them:
+These are in the report too; they are repeated here so that nothing in this
+document reads as a stronger claim than the evidence supports.
 
-- **The model used.** The blueprint fixes *a* model version, not a vendor. Whatever
-  you run lands in the manifest; the claim is always "on model X".
-- **Repetition count.** Fewer than 3 means run-to-run variance is not measured.
-- **`temperature`.** Removed on current Claude models; present on OpenAI-compatible
-  providers, where it is pinned to 0. A genuine difference between arms.
-- **§8.3 reliability failure**, and that the anchors are author-adjudicated.
-- **Four methods appear only in the held-out split** — no prompt was tuned against
-  `one_way_anova`, `pearson`, `logistic` or `poisson`.
-- **The label audit is not independent review** — same author wrote the labelling
-  logic and the audit.
-
----
-
-## 6. Reproducing from scratch
-
-```bash
-pip install -r requirements.txt
-make data          # download and freeze the four UCI datasets
-make all           # benchmark, validate, test, offline eval, tables, report
-./scripts/verify_all.sh    # nine-stage verification
-```
-
-`make help` lists every target.
-
----
-
-## 7. Defects found during construction
-
-Worth mentioning in a viva — each was found by a check that was then kept:
-
-1. `fit_regression` dropped the exposure column before reading it.
-2. Breusch-Pagan alone missed heteroscedasticity of the form sd ∝ |x|; White's test
-   is now reported alongside.
-3. No driver passed `output_schema`, so the live path would have billed calls that
-   changed nothing.
-4. System B paraphrased tool output as text, breaking `tool_use`/`tool_result` pairing.
-5. A reference containing spaces could not match the pattern, so the template was
-   emitted verbatim into a finished-looking report.
-6. `normalise` silently emptied `rejected_alternatives`, costing the §12 demo its
-   "clear rejection of ordinary ANOVA".
-7. Errored runs were recorded as complete, so a retry after a bad credential would
-   have skipped all 432.
-8. A no-argument tool carrying `"required": []` failed Groq's entire tool list.
+- **The model is Claude Haiku 4.5**, not Opus 5. Every held-out claim is about
+  that model. The runner accepts any model id; nothing here generalises to
+  frontier models without re-running it.
+- **Two repetitions, not three.** A budget decision — three would have run out
+  of credit partway and left an incomplete evaluation. Variance is measured
+  across two runs per cell.
+- **No usable interpretation score.** The blinded round failed its reliability
+  check (κ = −0.044). The instrument has been rebuilt and the diagnosis is in
+  report §5.5; a second round needs two human raters and has not been run. The
+  metric is withheld rather than reported unreliably.
+- **No independent second reviewer** for the 16 public-data labels.
+- **C over A is unresolved** at this sample size, as above.
