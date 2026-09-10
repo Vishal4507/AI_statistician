@@ -10,6 +10,7 @@ quietly passed.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import warnings
@@ -239,7 +240,14 @@ def _tests():
                         "-p", "no:cacheprovider"],
                        cwd=ROOT, capture_output=True, text=True, timeout=1200)
     line = [l for l in r.stdout.splitlines() if "passed" in l]
-    return r.returncode == 0, line[-1].strip() if line else r.stdout[-200:]
+    # Drop the wall-clock duration.  It changes on every run, and this detail
+    # string is written into the tracked reports/conformance.json -- so keeping
+    # it meant the file was dirty after every `make conformance`, which blocked
+    # every branch switch and made the artefact non-reproducible for no
+    # information gain.  How long the suite took is not a conformance fact.
+    detail = re.sub(r"\s+in\s+[\d.]+s\b", "", line[-1].strip()) if line \
+        else r.stdout[-200:]
+    return r.returncode == 0, detail
 
 
 @check("DoD.3", "Held-out evaluation with frozen prompts, complete run record")
