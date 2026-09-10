@@ -13,6 +13,9 @@ import warnings
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from aistat.env import load_dotenv
+load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
 from aistat.agents.llm import DEFAULT_EFFORT, DEFAULT_MODEL, api_key_available

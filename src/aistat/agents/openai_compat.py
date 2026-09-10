@@ -30,8 +30,10 @@ from typing import Any
 from aistat.agents.llm import LLMResponse, ToolUse
 
 PRESETS: dict[str, dict[str, str]] = {
+    # Model availability varies by Groq account; gpt-oss-120b is the most
+    # capable one reachable on the current free tier. Override with --model.
     "groq": {"base_url": "https://api.groq.com/openai/v1",
-             "env": "GROQ_API_KEY", "model": "llama-3.3-70b-versatile"},
+             "env": "GROQ_API_KEY", "model": "openai/gpt-oss-120b"},
     "openrouter": {"base_url": "https://openrouter.ai/api/v1",
                    "env": "OPENROUTER_API_KEY",
                    "model": "meta-llama/llama-3.3-70b-instruct:free"},
@@ -45,13 +47,42 @@ PRESETS: dict[str, dict[str, str]] = {
 
 
 def _to_openai_tools(tools: list[dict]) -> list[dict]:
-    """Anthropic tool definitions -> OpenAI function definitions."""
+    """Anthropic tool definitions -> OpenAI function definitions.
+
+    `inspect_dataset` takes no arguments, so its schema is an object with empty
+    properties. Anthropic accepts `"required": []` there; Groq rejects the whole
+    tool list with "invalid JSON schema ... 'required' present". One tool with
+    no parameters therefore killed every System B run. Strict mode is also
+    dropped for such a tool, since it constrains a property set that is empty.
+    """
     out = []
     for t in tools:
+        schema = dict(t["input_schema"])
+        props = dict(schema.get("properties") or {})
+        strict = bool(t.get("strict")) and bool(props)
+
+        if not props:
+            schema.pop("required", None)
+        elif strict:
+            # Strict mode requires EVERY property to appear in `required`;
+            # optionality is expressed by a nullable type instead. Leaving
+            # `exposure` out failed the whole tool list with "the following
+            # properties must be listed in `required`".
+            schema["required"] = list(props)
+            for name, spec in props.items():
+                t_ = spec.get("type")
+                if isinstance(t_, str) and t_ != "null":
+                    props[name] = {**spec, "type": [t_, "null"]} \
+                        if name not in (t["input_schema"].get("required") or []) \
+                        else spec
+            schema["properties"] = props
+        elif not schema.get("required"):
+            schema.pop("required", None)
+
         fn: dict[str, Any] = {"name": t["name"],
                               "description": t.get("description", ""),
-                              "parameters": t["input_schema"]}
-        if t.get("strict"):
+                              "parameters": schema}
+        if strict:
             fn["strict"] = True
         out.append({"type": "function", "function": fn})
     return out
@@ -117,8 +148,11 @@ class OpenAICompatClient:
 
         key = (api_key or os.environ.get(preset.get("env", ""), "")
                or os.environ.get("OPENAI_API_KEY", "") or "not-needed")
+        # Free tiers throttle aggressively. The SDK's backoff is the right
+        # mechanism; three attempts was simply too few -- 12 of 48 dev runs died
+        # on 429 rather than on anything about the model.
         self._client = OpenAI(base_url=self.base_url, api_key=key,
-                              max_retries=3, timeout=180.0)
+                              max_retries=8, timeout=300.0)
         self.name = f"{provider}:{self.model}:temp={temperature}"
         self.total_input = self.total_output = self.total_cache_read = 0
         self.n_calls = self.n_refusals = self.n_parse_failures = 0

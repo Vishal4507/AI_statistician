@@ -130,7 +130,13 @@ INSTRUCTIONS = {
     ),
     "write_report": (
         "Write the final report in six sections.\n\n"
-        "CRITICAL: you may not write any number anywhere. Every statistic, interval, "
+        "CRITICAL — this is the most common way a report is rejected. Write NO "
+        "digits of your own anywhere in the six sections. Not sample sizes, not "
+        "counts, not percentages, not rounded values, not numbers you can see in "
+        "the evidence above. If you want to state a quantity, find its reference "
+        "in the list and write {{that.reference}}; if it has no reference, do not "
+        "state the quantity at all.\n\n"
+        "You may not write any number anywhere. Every statistic, interval, "
         "effect size, count and proportion must appear as a {{reference}} template "
         "drawn from the available result references listed above -- for example "
         "{{r3.welch_t.p_value}}. A reference that was not listed will fail the run, "

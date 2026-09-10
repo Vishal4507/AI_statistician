@@ -356,7 +356,10 @@ def test_tool_definitions_translate_to_function_shape():
         assert t["type"] == "function"
         fn = t["function"]
         assert {"name", "description", "parameters"} <= set(fn)
-        assert fn["strict"] is True
+        # Strict constrains a property set, so a no-argument tool drops it --
+        # see test_no_parameter_tool_omits_required_and_strict.
+        if fn["parameters"].get("properties"):
+            assert fn["strict"] is True, fn["name"]
         # The schema must survive intact -- a dropped enum lets the model
         # invent a method outside the library.
         assert fn["parameters"]["additionalProperties"] is False
@@ -495,3 +498,69 @@ def test_evaluate_runs_nothing_when_preflight_fails(tmp_path, monkeypatch):
     assert res["n_run"] == 0
     assert not list(tmp_path.glob("preflight_test*.jsonl")), \
         "a failed pre-flight must not write partial results"
+
+
+def test_no_parameter_tool_omits_required_and_strict():
+    """Groq rejects the entire tool list if a no-argument tool carries
+    "required": []. One such tool killed every System B run."""
+    from aistat.agents.openai_compat import _to_openai_tools
+    out = _to_openai_tools([{
+        "name": "inspect_dataset", "description": "d",
+        "input_schema": {"type": "object", "properties": {}, "required": [],
+                         "additionalProperties": False},
+        "strict": True}])
+    params = out[0]["function"]["parameters"]
+    assert "required" not in params
+    assert "strict" not in out[0]["function"]
+
+
+def test_tools_with_parameters_keep_required_and_strict():
+    from aistat.agents.openai_compat import _to_openai_tools
+    out = _to_openai_tools([{
+        "name": "summarize_groups", "description": "d",
+        "input_schema": {"type": "object",
+                         "properties": {"outcome": {"type": "string"},
+                                        "group": {"type": "string"}},
+                         "required": ["outcome", "group"],
+                         "additionalProperties": False},
+        "strict": True}])
+    fn = out[0]["function"]
+    assert fn["parameters"]["required"] == ["outcome", "group"]
+    assert fn["strict"] is True
+
+
+def test_the_real_registry_produces_a_schema_groq_accepts():
+    from aistat.agents.openai_compat import _to_openai_tools
+    from aistat.tools.registry import ToolRegistry
+    for t in _to_openai_tools(ToolRegistry.specs(strict=True)):
+        params = t["function"]["parameters"]
+        if not params.get("properties"):
+            assert "required" not in params, t["function"]["name"]
+        else:
+            assert params.get("required"), t["function"]["name"]
+
+
+def test_strict_mode_lists_every_property_in_required():
+    """Groq: "`required` is required to be an array including every key in
+    properties". Omitting the optional `exposure` failed the whole tool list."""
+    from aistat.agents.openai_compat import _to_openai_tools
+    from aistat.tools.registry import ToolRegistry
+    for t in _to_openai_tools(ToolRegistry.specs(strict=True)):
+        params = t["function"]["parameters"]
+        props = params.get("properties") or {}
+        if t["function"].get("strict"):
+            assert set(params["required"]) == set(props), t["function"]["name"]
+
+
+def test_optional_parameters_become_nullable_under_strict():
+    """Optionality in strict mode is expressed by a nullable type, not by
+    absence from `required`."""
+    from aistat.agents.openai_compat import _to_openai_tools
+    from aistat.tools.registry import ToolRegistry
+    fit = next(t for t in _to_openai_tools(ToolRegistry.specs(strict=True))
+               if t["function"]["name"] == "fit_regression")
+    props = fit["function"]["parameters"]["properties"]
+    assert "exposure" in fit["function"]["parameters"]["required"]
+    assert "null" in props["exposure"]["type"]
+    # A genuinely required parameter must not be made nullable.
+    assert props["outcome"]["type"] == "string"

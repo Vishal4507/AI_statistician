@@ -14,6 +14,9 @@ import warnings
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from aistat.env import load_dotenv
+load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
 import pandas as pd

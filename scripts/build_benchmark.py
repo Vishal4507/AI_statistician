@@ -8,6 +8,9 @@ from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from aistat.env import load_dotenv
+load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
 from aistat.benchmark.builder import build_all

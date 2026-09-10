@@ -24,6 +24,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
+
+from aistat.env import load_dotenv
+load_dotenv()          # credentials are project-local, not in a shell profile
 warnings.filterwarnings("ignore")
 
 import pandas as pd
