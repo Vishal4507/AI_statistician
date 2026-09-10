@@ -231,7 +231,13 @@ def _repro():
     mk = (ROOT / "Makefile").read_text()
     need = ["benchmark:", "validate:", "test:", "eval:", "analyze:", "capstone:"]
     missing = [t for t in need if t not in mk]
-    return not missing, "documented commands present; verify_all.sh runs 8 stages"
+    # Count the stages rather than quoting a number.  The hardcoded "8" was
+    # already wrong -- the script had grown to 9 -- and a check that states a
+    # stale fact about the thing it is checking is worse than no check.
+    stages = len(re.findall(r'=== \d+/\d+ ',
+                            (ROOT / "scripts" / "verify_all.sh").read_text()))
+    return not missing, (f"documented commands present; verify_all.sh runs "
+                         f"{stages} stages")
 
 
 @check("DoD.2", "All methods unit-tested; all cases pass validation")

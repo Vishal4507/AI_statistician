@@ -70,7 +70,11 @@ with st.sidebar:
                      "engine.")
             engine = "Offline policy (deterministic)"
         else:
-            model = st.text_input("Model", "claude-opus-5")
+            # Default to the model the held-out evaluation actually ran
+            # on: it is the configuration these results describe, and it
+            # is five times cheaper for anyone trying the demo. Any
+            # model id is accepted.
+            model = st.text_input("Model", "claude-haiku-4-5")
             effort = st.select_slider("Effort",
                                       ["low", "medium", "high", "xhigh", "max"],
                                       value="high")

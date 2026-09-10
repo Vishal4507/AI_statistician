@@ -63,7 +63,7 @@
       "ref": "DoD.1",
       "name": "Fresh environment reproduces benchmark and tables",
       "status": "PASS ",
-      "detail": "documented commands present; verify_all.sh runs 8 stages",
+      "detail": "documented commands present; verify_all.sh runs 11 stages",
       "blocked_on": ""
     },
     {
