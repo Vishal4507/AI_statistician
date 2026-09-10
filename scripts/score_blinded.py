@@ -1,6 +1,6 @@
 """Blinded interpretation scoring (blueprint section 8.3).
 
-    python scripts/score_blinded.py --prepare heldout_claude-opus-5
+    python scripts/score_blinded.py --prepare heldout_claude-haiku-4-5
     # a human scores reports/blinded/scores_blank.csv
     python scripts/score_blinded.py --ingest reports/blinded/scores_blank.csv
 
