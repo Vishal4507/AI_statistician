@@ -22,7 +22,12 @@ from aistat.evaluation.runner import evaluate
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--client", default="rulebased",
-                    choices=["rulebased", "rulebased-naive", "anthropic"])
+                    choices=["rulebased", "rulebased-naive", "anthropic",
+                             "groq", "openrouter", "cerebras", "ollama",
+                             "llamacpp"],
+                    help="free options: groq / openrouter / cerebras need a "
+                         "free API key; ollama / llamacpp need a local server "
+                         "and no key at all")
     ap.add_argument("--split", default="heldout", choices=["dev", "heldout"])
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--systems", nargs="*", default=None)
@@ -33,7 +38,26 @@ def main() -> int:
     ap.add_argument("--no-thinking", action="store_true")
     args = ap.parse_args()
 
-    if args.client == "anthropic":
+    if args.client in ("groq", "openrouter", "cerebras", "ollama", "llamacpp"):
+        from aistat.agents.openai_compat import (PRESETS, OpenAICompatClient,
+                                                 available_providers)
+        if not available_providers().get(args.client):
+            cfg = PRESETS[args.client]
+            local = cfg["base_url"].startswith("http://localhost")
+            print(f"{args.client} is not reachable.\n"
+                  + (f"  Start a local server on {cfg['base_url']} first."
+                     if local else
+                     f"  Set {cfg['env']} — a free key, no payment required."),
+                  file=sys.stderr)
+            return 2
+        model = args.model if args.model != DEFAULT_MODEL else None
+
+        def factory():
+            return OpenAICompatClient(provider=args.client, model=model)
+        out_model = (model or PRESETS[args.client]["model"]).replace("/", "-")
+        default_out = f"{args.split}_{args.client}_{out_model}"
+
+    elif args.client == "anthropic":
         if not api_key_available():
             print("ANTHROPIC_API_KEY is not set and no credential profile was "
                   "found.\nSet the key, or use --client rulebased for the "
@@ -44,6 +68,7 @@ def main() -> int:
             return AnthropicClient(model=args.model, effort=args.effort,
                                    thinking=not args.no_thinking)
         default_out = f"heldout_{args.model.replace('.', '-')}"
+
     else:
         from aistat.agents.rulebased import RuleBasedClient
         policy = "naive" if args.client.endswith("naive") else "expert"

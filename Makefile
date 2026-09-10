@@ -8,7 +8,7 @@ export PYTHONPATH := src
 -include .env
 export
 
-.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live pilot analyze report demo site artifact clean-results all
+.PHONY: help setup data benchmark validate test eval eval-naive check-key smoke eval-live eval-free eval-free-dev pilot analyze report demo site artifact clean-results all
 
 help:
 	@echo "AI Statistician"
@@ -22,6 +22,8 @@ help:
 	@echo "  make check-key  confirm the key is loaded (prints presence, never the value)"
 	@echo "  make smoke      validate the live path with a few cents of API calls"
 	@echo "  make eval-live  the live held-out experiment (needs ANTHROPIC_API_KEY)"
+	@echo "  make eval-free-dev  free-provider smoke run on the dev set"
+	@echo "  make eval-free  free-provider held-out run (PROVIDER=groq|ollama|...)"
 	@echo "  make pilot      two-tier headroom check (run BEFORE freezing prompts)"
 	@echo "  make analyze    rebuild every result table from raw logs"
 	@echo "  make report     regenerate the capstone results document"
@@ -72,6 +74,15 @@ smoke: check-key
 
 eval-live: smoke
 	$(PY) scripts/run_evaluation.py --client anthropic --split heldout --reps 3 --workers 4
+
+# Free inference. PROVIDER: groq | openrouter | cerebras (free key, no payment)
+# or ollama | llamacpp (local server, no key at all).
+PROVIDER ?= groq
+eval-free-dev:
+	$(PY) scripts/run_evaluation.py --client $(PROVIDER) --split dev --reps 1 --workers 2
+
+eval-free:
+	$(PY) scripts/run_evaluation.py --client $(PROVIDER) --split heldout --reps 3 --workers 2
 
 pilot:
 	$(PY) scripts/pilot.py

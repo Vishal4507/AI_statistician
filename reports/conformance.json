@@ -28,8 +28,8 @@
       "ref": "12.4",
       "name": "Evaluation assets: 3 systems, run logs, scorers, tables, taxonomy",
       "status": "BLOCK",
-      "detail": "live held-out run absent -- needs API credit (~$34 Opus / ~$10 Haiku). Offline study complete: 432 runs, 3 systems, 2 table sets",
-      "blocked_on": "live held-out run absent -- needs API credit (~$34 Opus / ~$10 Haiku). Offline study complete: 432 runs, 3 systems, 2 table sets"
+      "detail": "no live held-out run recorded. FREE options: `make eval-free PROVIDER=groq` (free key) or PROVIDER=ollama (local, no key). Paid: ~$34 Opus / ~$10 Haiku. Offline study complete: 432 runs, 3 systems, 2 table sets",
+      "blocked_on": "no live held-out run recorded. FREE options: `make eval-free PROVIDER=groq` (free key) or PROVIDER=ollama (local, no key). Paid: ~$34 Opus / ~$10 Haiku. Offline study complete: 432 runs, 3 systems, 2 table sets"
     },
     {
       "ref": "12.5",
@@ -70,15 +70,15 @@
       "ref": "DoD.2",
       "name": "All methods unit-tested; all cases pass validation",
       "status": "PASS ",
-      "detail": "173 passed in 13.46s",
+      "detail": "179 passed in 13.57s",
       "blocked_on": ""
     },
     {
       "ref": "DoD.3",
       "name": "Held-out evaluation with frozen prompts, complete run record",
       "status": "BLOCK",
-      "detail": "not run -- requires API credit. Prompt freeze, resumable runner and budget guard are in place; `make eval-live` smoke-tests the live path first",
-      "blocked_on": "not run -- requires API credit. Prompt freeze, resumable runner and budget guard are in place; `make eval-live` smoke-tests the live path first"
+      "detail": "not run. Everything around it is in place -- prompt freeze, resumable runner, budget guard, live-path smoke test. Runnable at zero cost with `make eval-free PROVIDER=ollama` (local) or a free provider key",
+      "blocked_on": "not run. Everything around it is in place -- prompt freeze, resumable runner, budget guard, live-path smoke test. Runnable at zero cost with `make eval-free PROVIDER=ollama` (local) or a free provider key"
     },
     {
       "ref": "DoD.4",

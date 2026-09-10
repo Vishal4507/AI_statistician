@@ -31,7 +31,32 @@ That downloads the four UCI datasets, builds all 64 case packages, validates
 them, runs 113 tests, executes a 432-run offline evaluation, and rebuilds every
 result table. It needs no API key and takes about three minutes.
 
-For the live experiment, in this order:
+### Running it for free
+
+The blueprint fixes *a* model version; it does not name one. Any pinned,
+disclosed model is scientifically valid — and per finding F-A2 a weaker model is
+the more interesting arm, since protocol uplift should be larger where internal
+reasoning is weaker.
+
+```bash
+export GROQ_API_KEY=...            # free key, no payment
+make eval-free-dev PROVIDER=groq   # 48 dev runs first — check it works
+make eval-free PROVIDER=groq       # the 432-run held-out evaluation
+make analyze && make capstone
+```
+
+| Provider | Cost | Needs |
+|---|---|---|
+| `groq` | free tier | a free key |
+| `openrouter` | `:free` models | a free key |
+| `cerebras` | free tier | a free key |
+| `ollama` | free | a local server, no key |
+| `llamacpp` | free | a local server, no key |
+
+Whichever you use, the model id lands in the run manifest and the report, so the
+result is always "on model X" rather than an unqualified claim.
+
+### For the live experiment on Claude, in this order:
 
 ```bash
 export ANTHROPIC_API_KEY=...

@@ -337,3 +337,85 @@ def test_protocol_run_surfaces_the_rejected_alternative():
     rejected = (r.selection or {}).get("rejected_alternatives") or {}
     assert "one_way_anova" in rejected, "the rejection the demo requires is absent"
     assert rejected["one_way_anova"], "rejection has no stated reason"
+
+
+# ==========================================================================
+# OpenAI-compatible providers
+# ==========================================================================
+#
+# The blueprint fixes *a* model version, not a vendor. These cover the
+# translation from the drivers' Anthropic-shaped messages to the OpenAI wire
+# format, which is where a provider swap actually breaks.
+
+def test_tool_definitions_translate_to_function_shape():
+    from aistat.agents.openai_compat import _to_openai_tools
+    from aistat.tools.registry import ToolRegistry
+    out = _to_openai_tools(ToolRegistry.specs(strict=True))
+    assert len(out) == 8
+    for t in out:
+        assert t["type"] == "function"
+        fn = t["function"]
+        assert {"name", "description", "parameters"} <= set(fn)
+        assert fn["strict"] is True
+        # The schema must survive intact -- a dropped enum lets the model
+        # invent a method outside the library.
+        assert fn["parameters"]["additionalProperties"] is False
+
+
+def test_tool_call_round_trip_becomes_assistant_plus_tool_messages():
+    """The pairing OpenAI requires: calls on the assistant, results keyed by id."""
+    from aistat.agents.openai_compat import _to_openai_messages
+    msgs = _to_openai_messages("sys", [
+        {"role": "user", "content": "question"},
+        {"role": "assistant", "content": [
+            {"type": "text", "text": "checking"},
+            {"type": "tool_use", "id": "call_1", "name": "inspect_dataset",
+             "input": {}}]},
+        {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "call_1", "content": "{}"}]},
+    ])
+    assert [m["role"] for m in msgs] == ["system", "user", "assistant", "tool"]
+    assert msgs[2]["tool_calls"][0]["id"] == "call_1"
+    assert msgs[2]["tool_calls"][0]["function"]["name"] == "inspect_dataset"
+    assert msgs[3]["tool_call_id"] == "call_1"
+
+
+def test_parallel_tool_calls_all_survive_translation():
+    from aistat.agents.openai_compat import _to_openai_messages
+    msgs = _to_openai_messages("sys", [
+        {"role": "assistant", "content": [
+            {"type": "tool_use", "id": "a", "name": "summarize_groups", "input": {}},
+            {"type": "tool_use", "id": "b", "name": "check_group_assumptions",
+             "input": {}}]},
+        {"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": "a", "content": "{}"},
+            {"type": "tool_result", "tool_use_id": "b", "content": "{}"}]},
+    ])
+    assert len(msgs[1]["tool_calls"]) == 2
+    assert [m["tool_call_id"] for m in msgs if m["role"] == "tool"] == ["a", "b"]
+
+
+def test_plain_string_messages_pass_through():
+    from aistat.agents.openai_compat import _to_openai_messages
+    msgs = _to_openai_messages("sys", [{"role": "user", "content": "hello"}])
+    assert msgs == [{"role": "system", "content": "sys"},
+                    {"role": "user", "content": "hello"}]
+
+
+def test_every_preset_names_an_endpoint_a_model_and_a_credential():
+    from aistat.agents.openai_compat import PRESETS
+    for name, cfg in PRESETS.items():
+        assert cfg["base_url"].startswith("http"), name
+        assert cfg["model"], name
+        assert cfg["env"].endswith("_API_KEY"), name
+
+
+def test_local_providers_are_detected_by_reachability_not_by_key():
+    """Ollama and llama.cpp need no credential, so a missing key must not
+    mark them unavailable -- and an absent server must not mark them ready."""
+    from aistat.agents.openai_compat import PRESETS, available_providers
+    avail = available_providers()
+    assert set(avail) == set(PRESETS)
+    for name, cfg in PRESETS.items():
+        if cfg["base_url"].startswith("http://localhost"):
+            assert isinstance(avail[name], bool)
