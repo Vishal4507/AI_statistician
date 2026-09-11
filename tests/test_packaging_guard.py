@@ -45,9 +45,12 @@ def test_kept_by_name(rel):
     assert not pkg.excluded(Path(rel)), f"{rel} would have been dropped"
 
 
+# Every value below is synthetic: a repeated filler string long enough to trip
+# the detector. Real key material must never appear in a fixture -- a test file
+# is committed, and a committed credential is a published credential.
 @pytest.mark.parametrize("secret", [
     "sk-ant-api03-" + "A1b2C3d4E5" * 6,
-    "gsk_" + "Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Qz7Q" + "Jp9r",
+    "gsk_" + "Qz7" * 16,
     "sk-or-v1-" + "0" * 64,
     "csk-" + "z" * 48,
     "ghp_" + "B" * 36,

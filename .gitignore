@@ -16,3 +16,6 @@ results/*.jsonl
 # Scoring session output -- the key must never be committed alongside
 # a scored sheet, and packets are regenerated per run.
 reports/blinded/
+
+# Build artifact: the site directory is the source of truth
+ai-statistician-site.zip

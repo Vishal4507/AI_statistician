@@ -345,8 +345,8 @@ experiment**:
   confidence interval spans {(wilson_ci(13, 13)[1] - wilson_ci(13, 13)[0]):.2f}.
 - **One repetition.** Run-to-run variance is unmeasured.
 {lost_bullet}
-- **Only System C at `medium` effort is missing entirely** — the account ran out
-  of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
+- **Only System C at `medium` effort is missing entirely**, so the
+  effort/accuracy trade-off is unresolved.
 
 {fig("fig3_failures.png",
      "Figure 3 — Failure counts by stage of the error taxonomy. Design "
@@ -512,13 +512,11 @@ worse.
                 "frontier models.")
         if reps and reps < 3:
             caveats.append(
-                f"**{reps} repetitions, not three.** This was a budget "
-                "decision: three repetitions cost more than the credit "
-                "available and would have halted partway, leaving an "
-                f"incomplete evaluation. Variance is estimated across {reps} "
-                "runs per cell — enough to expose gross instability, not "
-                "enough to characterise the distribution. The intervals above "
-                "are over cases, not over repetitions.")
+                f"**{reps} repetitions, not three.** Run-to-run variance is "
+                f"therefore estimated across {reps} runs per cell — enough to "
+                "expose gross instability, not enough to characterise the "
+                "distribution. The intervals above are over cases, not over "
+                "repetitions.")
         if caveats:
             doc += ("**What this evaluation does not establish.**\n\n"
                     + "".join(f"- {c}\n" for c in caveats) + "\n")
@@ -670,7 +668,7 @@ Ordered by how much each would improve coverage per unit of work:
 
 ```bash
 make setup && make all      # benchmark, tests, offline calibration, tables
-make smoke                  # validates the live path (requires credit)
+make smoke                  # validates the live path (needs a model key)
 make eval-live && make report
 python scripts/write_capstone.py
 ```

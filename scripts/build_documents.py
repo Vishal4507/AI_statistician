@@ -541,7 +541,7 @@ def interim():
          "development partition; provenance enforced at schema level; prompt, "
          "model, code and runner frozen."],
         ["5", "Held-out results reproducible from raw logs",
-         "<b>Outstanding.</b> The runner, budget guard and credential "
+         "<b>Outstanding.</b> The runner, its execution guard and the "
          "pre-flight are in place and tested; execution is the remaining step."],
     ], widths=[1.5 * cm, 6.8 * cm, 8.3 * cm]))
     st.append(P("Table 1. Status against the planned acceptance gates.",
@@ -681,8 +681,8 @@ def interim():
     st.append(P("9. Remaining work", "h1"))
     st += bullets([
         "<b>Execute the held-out evaluation.</b> The runner is resumable, "
-        "pre-flights credentials before spending anything, and refuses to "
-        "start work it cannot finish. Execution is the only outstanding step.",
+        "validates the live path before starting, and refuses to begin work "
+        "it cannot finish. Execution is the only outstanding step.",
         "<b>Score, bootstrap and analyse.</b> Every table regenerates from the "
         "raw logs by a single command, so this follows immediately once the "
         "runs are recorded.",
@@ -699,7 +699,7 @@ def interim():
         "remaining is not technical but one of resources: the held-out "
         "evaluation requires inference capacity, and the evaluation cannot be "
         "reported without it. Every control around that step — the frozen "
-        "split, the frozen prompt hash, the resumable runner, the budget "
+        "split, the frozen prompt hash, the resumable runner, the execution "
         "guard — is in place and tested, so the step is bounded and "
         "repeatable rather than exploratory."))
     st.append(P(

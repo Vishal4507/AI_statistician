@@ -124,16 +124,16 @@ To repeat the held-out evaluation against a live model:
 
 ```bash
 cp .env.example .env        # add ANTHROPIC_API_KEY
-make eval-live              # pre-flights credentials before spending anything
+make eval-live              # validates the live path before starting work
 ```
 
 The runner is resumable and flushes every 25 runs, so an interruption costs one
 batch rather than the whole evaluation. Re-running skips work already recorded.
 
-Free alternatives, if no credit is available:
+Alternatives that need no hosted model:
 
 ```bash
-make eval-free PROVIDER=ollama     # local, no key, no cost
+make eval-free PROVIDER=ollama     # runs locally, no key required
 make eval-free PROVIDER=groq       # free tier key
 ```
 
@@ -159,9 +159,9 @@ document reads as a stronger claim than the evidence supports.
 - **The model is Claude Haiku 4.5**, not Opus 5. Every held-out claim is about
   that model. The runner accepts any model id; nothing here generalises to
   frontier models without re-running it.
-- **Two repetitions, not three.** A budget decision — three would have run out
-  of credit partway and left an incomplete evaluation. Variance is measured
-  across two runs per cell.
+- **Two repetitions, not three.** Run-to-run variance is estimated across two
+  runs per cell — enough to expose gross instability, not enough to
+  characterise the distribution.
 - **No usable interpretation score.** The blinded round failed its reliability
   check (κ = −0.044). The instrument has been rebuilt and the diagnosis is in
   report §5.5; a second round needs two human raters and has not been run. The

@@ -159,8 +159,8 @@ experiment**:
   confidence interval spans 0.23.
 - **One repetition.** Run-to-run variance is unmeasured.
 - **Runs whose report was rejected are kept, not dropped.** Such a run chose a method and ran it; only the write-up failed the provenance contract, and the choice is what these numbers measure. Excluding them would quietly improve whichever system fails the contract most often.
-- **Only System C at `medium` effort is missing entirely** — the account ran out
-  of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
+- **Only System C at `medium` effort is missing entirely**, so the
+  effort/accuracy trade-off is unresolved.
 
 
 ![Figure 3 — Failure counts by stage of the error taxonomy. Design validation failures are cases where a method was fitted to data whose independence assumption fails.](../reports/figures/fig3_failures.png)
@@ -230,7 +230,7 @@ These runs are kept in the accuracy table above. They chose a method, and the ch
 **What this evaluation does not establish.**
 
 - **The model is `claude-haiku-4-5`, not Claude Opus 5.** Every claim in this section is a claim about that model. The design is model-agnostic and the runner accepts any model id, but nothing here should be read as a general statement about frontier models.
-- **2 repetitions, not three.** This was a budget decision: three repetitions cost more than the credit available and would have halted partway, leaving an incomplete evaluation. Variance is estimated across 2 runs per cell — enough to expose gross instability, not enough to characterise the distribution. The intervals above are over cases, not over repetitions.
+- **2 repetitions, not three.** Run-to-run variance is therefore estimated across 2 runs per cell — enough to expose gross instability, not enough to characterise the distribution. The intervals above are over cases, not over repetitions.
 
 
 ![Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.](../reports/figures/fig5_heldout_accuracy.png)
@@ -360,7 +360,7 @@ Ordered by how much each would improve coverage per unit of work:
 
 ```bash
 make setup && make all      # benchmark, tests, offline calibration, tables
-make smoke                  # validates the live path (requires credit)
+make smoke                  # validates the live path (needs a model key)
 make eval-live && make report
 python scripts/write_capstone.py
 ```
