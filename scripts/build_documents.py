@@ -34,7 +34,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, KeepTogether,
                                 Table, TableStyle)
 
 DOCS = ROOT / "docs"
-AUTHOR = "Vishal A S"
+AUTHOR = "Vishal Dhinesh Kumar"
 AUTHOR_ID = "vishal.as24dxb016@spjain.org"
 PROGRAMME = "Capstone Project"
 TODAY = date.today().strftime("%d %B %Y")
