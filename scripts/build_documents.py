@@ -715,6 +715,7 @@ def interim():
 # =========================================================== FINAL REPORT ==
 
 LIVE_URL = "https://ai-statistician.netlify.app"
+REPO_URL = "https://github.com/Vishal4507/AI_statistician"
 
 _INLINE = [
     (re.compile(r"`([^`]+)`"), r'<font face="Courier" size="9">\1</font>'),
@@ -883,14 +884,18 @@ def final_report():
 
     st.append(table(
         [["Live evaluation",
-          f'<link href="{LIVE_URL}" color="#1c4f8f"><b>{LIVE_URL}</b></link>']],
+          f'<link href="{LIVE_URL}" color="#1c4f8f"><b>{LIVE_URL}</b></link>'],
+         ["Source repository",
+          f'<link href="{REPO_URL}" color="#1c4f8f"><b>{REPO_URL}</b></link>']],
         widths=[3.4 * cm, 13.2 * cm], header=False, zebra=False))
     st.append(P(
-        "The link above opens the benchmark explorer: all 64 cases with their "
+        "The first link opens the benchmark explorer: all 64 cases with their "
         "design cards and gold labels, every rendered report and execution "
         "trace from the recorded runs, the result tables, and a project status "
-        "page. Nothing needs to be installed to inspect the evidence behind "
-        "any figure in this report.", "caption"))
+        "page. Nothing needs to be installed to inspect the evidence behind any "
+        "figure in this report. The second holds the complete source, the "
+        "benchmark, the recorded run logs and the test suite, so every table "
+        "and figure here can be regenerated from the raw data.", "caption"))
     st.append(Spacer(1, 6))
     st += render_markdown(md, 16.6 * cm)
     return st
