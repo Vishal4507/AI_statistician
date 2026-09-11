@@ -16,6 +16,7 @@ and carry today's date.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -79,6 +80,11 @@ def styles() -> dict:
     s["cellb"] = ParagraphStyle(
         "cellb", fontName="Helvetica-Bold", fontSize=8.5, leading=11.5,
         textColor=INK)
+    s["h3"] = ParagraphStyle(
+        "h3", fontName="Helvetica-Bold", fontSize=9.5, leading=13,
+        textColor=INK2, spaceBefore=9, spaceAfter=3)
+    s["code"] = ParagraphStyle(
+        "code", fontName="Courier", fontSize=8.5, leading=11.5, textColor=INK2)
     s["note"] = ParagraphStyle(
         "note", fontName="Times-Italic", fontSize=9.5, leading=13.5,
         textColor=INK2, leftIndent=11, borderPadding=0, spaceAfter=9)
@@ -706,6 +712,190 @@ def interim():
     return st
 
 
+# =========================================================== FINAL REPORT ==
+
+LIVE_URL = "https://ai-statistician.netlify.app"
+
+_INLINE = [
+    (re.compile(r"`([^`]+)`"), r'<font face="Courier" size="9">\1</font>'),
+    (re.compile(r"\*\*([^*]+)\*\*"), r"<b>\1</b>"),
+    (re.compile(r"(?<!\*)\*([^*\n]+)\*(?!\*)"), r"<i>\1</i>"),
+]
+
+
+def inline(s: str) -> str:
+    """Markdown inline markup to reportlab's mini-markup.
+
+    Escaping runs first: an unescaped ampersand or angle bracket in the source
+    would be read as markup and silently swallow the rest of the paragraph.
+    """
+    s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    # links: keep the text, make the destination clickable
+    s = re.sub(r"\[([^\]]+)\]\((https?://[^)]+)\)",
+               r'<link href="\2" color="#1c4f8f">\1</link>', s)
+    s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1", s)   # local links: text only
+    for pat, rep in _INLINE:
+        s = pat.sub(rep, s)
+    return s
+
+
+def figure(path: Path, max_w: float):
+    """Scale a figure to the text column, preserving its aspect ratio."""
+    from reportlab.lib.utils import ImageReader
+    from reportlab.platypus import Image
+    iw, ih = ImageReader(str(path)).getSize()
+    w = min(max_w, iw)
+    return Image(str(path), width=w, height=w * ih / iw)
+
+
+def render_markdown(md: str, width: float):
+    """Render the capstone report's Markdown subset into flowables."""
+    story, i = [], 0
+    lines = md.splitlines()
+    in_fence = False
+    fence_buf = []
+
+    while i < len(lines):
+        raw = lines[i]
+        s = raw.strip()
+
+        if s.startswith("```"):
+            if in_fence:
+                story.append(Table(
+                    [[Paragraph("<br/>".join(
+                        l.replace("&", "&amp;").replace("<", "&lt;")
+                         .replace(">", "&gt;").replace(" ", "&nbsp;")
+                        for l in fence_buf), S["code"])]],
+                    colWidths=[width],
+                    style=TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f4f6f9")),
+                        ("BOX", (0, 0), (-1, -1), 0.4, RULE),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                        ("TOPPADDING", (0, 0), (-1, -1), 6),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6)])))
+                story.append(Spacer(1, 8))
+                fence_buf, in_fence = [], False
+            else:
+                in_fence = True
+            i += 1
+            continue
+        if in_fence:
+            fence_buf.append(raw)
+            i += 1
+            continue
+
+        if not s or s.startswith("---"):
+            i += 1
+            continue
+
+        if s.startswith("!["):
+            m = re.match(r"!\[([^\]]*)\]\(([^)]+)\)", s)
+            if m:
+                p = (ROOT / "docs" / m.group(2)).resolve()
+                if p.exists():
+                    story.append(Spacer(1, 4))
+                    story.append(figure(p, width))
+                    story.append(Spacer(1, 3))
+            i += 1
+            continue
+
+        if s.startswith("#"):
+            level = len(s) - len(s.lstrip("#"))
+            text = inline(s.lstrip("#").strip())
+            if level == 1:
+                i += 1
+                continue                      # the cover page carries the title
+            story.append(P(text, {2: "h1", 3: "h2"}.get(level, "h3")))
+            i += 1
+            continue
+
+        if s.startswith("|"):
+            block = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                block.append(lines[i].strip())
+                i += 1
+            rows = [[c.strip() for c in r.strip("|").split("|")] for r in block]
+            rows = [r for r in rows
+                    if not all(set(c) <= set("-: ") for c in r)]
+            if rows:
+                n = max(len(r) for r in rows)
+                rows = [[inline(c) for c in r] + [""] * (n - len(r)) for r in rows]
+                story.append(table(rows, widths=[width / n] * n))
+                story.append(Spacer(1, 6))
+            continue
+
+        if re.match(r"^\d+\.\s", s):
+            items = []
+            while i < len(lines) and re.match(r"^\d+\.\s", lines[i].strip()):
+                item = lines[i].strip()
+                i += 1
+                while (i < len(lines) and lines[i].startswith("  ")
+                       and lines[i].strip()
+                       and not re.match(r"^\d+\.\s", lines[i].strip())):
+                    item += " " + lines[i].strip()
+                    i += 1
+                items.append(inline(item))
+            story += [Paragraph(x, S["bullet"]) for x in items]
+            story.append(Spacer(1, 4))
+            continue
+
+        if s.startswith("- ") or s.startswith("* "):
+            items = []
+            while i < len(lines) and lines[i].strip()[:2] in ("- ", "* "):
+                item = lines[i].strip()[2:]
+                i += 1
+                while (i < len(lines) and lines[i].startswith("  ")
+                       and lines[i].strip() and lines[i].strip()[:2] not in ("- ", "* ")):
+                    item += " " + lines[i].strip()
+                    i += 1
+                items.append(inline(item))
+            story += bullets(items)
+            story.append(Spacer(1, 4))
+            continue
+
+        # a whole-line italic run is a figure caption in this document
+        if s.startswith("*") and s.endswith("*") and not s.startswith("**"):
+            story.append(P(inline(s.strip("*")), "caption"))
+            i += 1
+            continue
+
+        para = [s]
+        i += 1
+        while i < len(lines) and lines[i].strip() and not re.match(
+                r"^\s*(#|\||-\s|\*\s|\d+\.\s|!\[|```|---)", lines[i]):
+            para.append(lines[i].strip())
+            i += 1
+        story.append(P(inline(" ".join(para))))
+
+    return story
+
+
+def final_report():
+    md = (ROOT / "docs" / "CAPSTONE_REPORT.md").read_text()
+    # The generated file opens with its own title and a regeneration note; the
+    # cover page replaces both.
+    md = md.split("---", 1)[1] if md.startswith("#") and "---" in md[:400] else md
+
+    st = title_block(
+        "An LLM Agent for the Selection, Validation and Interpretation "
+        "of Statistical Methods", "Final Report")
+
+    st.append(table(
+        [["Live evaluation",
+          f'<link href="{LIVE_URL}" color="#1c4f8f"><b>{LIVE_URL}</b></link>']],
+        widths=[3.4 * cm, 13.2 * cm], header=False, zebra=False))
+    st.append(P(
+        "The link above opens the benchmark explorer: all 64 cases with their "
+        "design cards and gold labels, every rendered report and execution "
+        "trace from the recorded runs, the result tables, and a project status "
+        "page. Nothing needs to be installed to inspect the evidence behind "
+        "any figure in this report.", "caption"))
+    st.append(Spacer(1, 6))
+    st += render_markdown(md, 16.6 * cm)
+    return st
+
+
 # ---------------------------------------------------------------- build ---
 
 def main() -> int:
@@ -713,7 +903,9 @@ def main() -> int:
     jobs = [("AI_Statistician_Proposal.pdf",
              "AI Statistician — Project Proposal", proposal),
             ("AI_Statistician_Interim_Report.pdf",
-             "AI Statistician — Interim Report", interim)]
+             "AI Statistician — Interim Report", interim),
+            ("AI_Statistician_Final_Report.pdf",
+             "AI Statistician — Final Report", final_report)]
     for filename, running, builder in jobs:
         path = DOCS / filename
         doc = make_doc(path, running)

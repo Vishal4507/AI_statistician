@@ -1,6 +1,6 @@
 # AI Statistician — capstone report
 
-*Generated 2026-09-10 from `results/*.jsonl`.
+*Generated 2026-09-11 from `results/*.jsonl`.
 Regenerate with `python scripts/write_capstone.py`.*
 
 ---
@@ -113,12 +113,12 @@ repetitions rather than claiming to eliminate it.
 | B · LLM with tools | 16 | 0.500 | [0.280, 0.720] | 0.00 | 0.188 | 4.5 |
 | C · Structured agent | 16 | 0.938 | [0.717, 0.989] | 1.00 | 0.000 | 2.9 |
 
-![Figure 1 — Method-selection accuracy with Wilson 95% intervals. The live panel is preliminary; the offline panel is the calibration run.](figures/fig1_accuracy.png)
+![Figure 1 — Method-selection accuracy with Wilson 95% intervals. The live panel is preliminary; the offline panel is the calibration run.](../reports/figures/fig1_accuracy.png)
 
 *Figure 1 — Method-selection accuracy with Wilson 95% intervals. The live panel is preliminary; the offline panel is the calibration run.*
 
 
-![Figure 2 — Abstention recall on design-hazard cases. The sharpest separation between the systems, and the failure the project exists to prevent.](figures/fig4_abstention.png)
+![Figure 2 — Abstention recall on design-hazard cases. The sharpest separation between the systems, and the failure the project exists to prevent.](../reports/figures/fig4_abstention.png)
 
 *Figure 2 — Abstention recall on design-hazard cases. The sharpest separation between the systems, and the failure the project exists to prevent.*
 
@@ -163,7 +163,7 @@ experiment**:
   of credit mid-sweep, so the cost/accuracy trade-off is unresolved.
 
 
-![Figure 3 — Failure counts by stage of the error taxonomy. Design validation failures are cases where a method was fitted to data whose independence assumption fails.](figures/fig3_failures.png)
+![Figure 3 — Failure counts by stage of the error taxonomy. Design validation failures are cases where a method was fitted to data whose independence assumption fails.](../reports/figures/fig3_failures.png)
 
 *Figure 3 — Failure counts by stage of the error taxonomy. Design validation failures are cases where a method was fitted to data whose independence assumption fails.*
 
@@ -194,7 +194,7 @@ of having more structure, because more structure with worse rules performs
 worse.
 
 
-![Figure 4 — Risk-coverage. Coverage is the share of cases a system chose to answer; selective accuracy is accuracy among those. A system that abstains only when it should sits top-right.](figures/fig2_risk_coverage.png)
+![Figure 4 — Risk-coverage. Coverage is the share of cases a system chose to answer; selective accuracy is accuracy among those. A system that abstains only when it should sits top-right.](../reports/figures/fig2_risk_coverage.png)
 
 *Figure 4 — Risk-coverage. Coverage is the share of cases a system chose to answer; selective accuracy is accuracy among those. A system that abstains only when it should sits top-right.*
 
@@ -233,15 +233,15 @@ These runs are kept in the accuracy table above. They chose a method, and the ch
 - **2 repetitions, not three.** This was a budget decision: three repetitions cost more than the credit available and would have halted partway, leaving an incomplete evaluation. Variance is estimated across 2 runs per cell — enough to expose gross instability, not enough to characterise the distribution. The intervals above are over cases, not over repetitions.
 
 
-![Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.](figures/fig5_heldout_accuracy.png)
+![Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.](../reports/figures/fig5_heldout_accuracy.png)
 
 *Figure 5 — Held-out selection accuracy: the live model beside the deterministic policy on the same split. Unlike Figure 1, both panels are the held-out set, so the comparison is like with like.*
 
-![Figure 6 — Held-out risk-coverage for the live model.](figures/fig6_heldout_risk_coverage.png)
+![Figure 6 — Held-out risk-coverage for the live model.](../reports/figures/fig6_heldout_risk_coverage.png)
 
 *Figure 6 — Held-out risk-coverage for the live model.*
 
-![Figure 7 — Where each system fails on the held-out set, by stage of the error taxonomy.](figures/fig7_heldout_failures.png)
+![Figure 7 — Where each system fails on the held-out set, by stage of the error taxonomy.](../reports/figures/fig7_heldout_failures.png)
 
 *Figure 7 — Where each system fails on the held-out set, by stage of the error taxonomy.*
 

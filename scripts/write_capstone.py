@@ -177,7 +177,11 @@ def main() -> int:
         """
         if not (figs / name).exists():
             return ""
-        return (f"\n![{caption}](figures/{name})\n\n"
+        # The document lives in docs/ and the figures in reports/figures/,
+        # so the link has to climb out. Writing "figures/NAME" pointed at
+        # docs/figures/, which does not exist -- every image in the
+        # rendered Markdown was a broken link.
+        return (f"\n![{caption}](../reports/figures/{name})\n\n"
                 f"*{caption}*\n")
 
     doc = f"""# AI Statistician — capstone report
