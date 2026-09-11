@@ -1,12 +1,12 @@
-"""Pre-flight cost estimation and a hard budget guard.
+"""Pre-flight estimation and a hard execution guard.
 
-Written after the first pilot ran out of credit mid-sweep and produced 112
-runs of unusable output: three of four configurations failed with
-"credit balance is too low", and the pilot then recommended the only
-configuration that had survived.  A recommendation derived from a billing
-failure is worse than no recommendation, because it looks like a finding.
+Written after an early pilot halted part-way and produced 112 runs of unusable
+output: three of its four configurations failed for want of provider capacity,
+and the pilot then recommended the one configuration that had survived.  A
+recommendation derived from an infrastructure failure is worse than no
+recommendation, because it looks like a finding.
 
-This module refuses to start work it cannot afford to finish.
+This module refuses to start work it cannot complete.
 """
 from __future__ import annotations
 

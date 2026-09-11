@@ -150,11 +150,11 @@ def _eval():
     live = _any_live_heldout()
     if not live:
         return None, (_failed_attempts_note()
-                      + "no usable live held-out run recorded. FREE options: "
-                      "`make eval-free PROVIDER=groq` (free key) or "
-                      "PROVIDER=ollama (local, no key). Paid: ~$34 Opus / "
-                      f"~$10 Haiku. Offline study complete: {n} runs, "
-                      f"{len(SYSTEMS)} systems, {len(tables)} table sets")
+                      + "no usable live held-out run recorded. It can be "
+                      "executed against any provider the runner supports, "
+                      "including one that runs locally. Offline study "
+                      f"complete: {n} runs, {len(SYSTEMS)} systems, "
+                      f"{len(tables)} table sets")
     path, ok, tot = live
     lost = tot - ok
     return True, (f"live held-out run recorded: {path.name} -- {ok}/{tot} runs "

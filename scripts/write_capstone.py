@@ -537,9 +537,8 @@ worse.
             doc += f"\nPer-system detail: `reports/{rep_md.name}`.\n"
     else:
         doc += """**Not yet run.** This is the single outstanding deliverable. It requires
-API credit: approximately $34 for two repetitions on Claude Opus 5, or $10 on
-Haiku 4.5. The runner is resumable and the benchmark is frozen, so it can be
-executed at any point without invalidating anything above.
+access to a hosted model. The runner is resumable and the benchmark is frozen,
+so it can be executed at any point without invalidating anything above.
 
 Everything needed to run it exists and is tested: `make eval-live` validates the
 live path first and refuses to start work the budget cannot finish.
