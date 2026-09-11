@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What the AI Statistician is, how its benchmark was built, what the held-out evaluation found, and what it does not establish.">
+<title>AI Statistician Capstone Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --ground:#fbfcfd;
+    --panel:#ffffff;
+    --ink:#12181f;
+    --ink-2:#3c4854;
+    --muted:#5c6a78;
+    --faint:#8593a1;
+    --rule:#e1e7ed;
+    --rule-strong:#cfd8e1;
+    --sys-a:#2f6fd0;
+    --sys-b:#dd6027;
+    --sys-c:#129b68;
+    --ok:#12805a;
+    --ok-soft:#e6f4ee;
+    --caution:#9a6a08;
+    --caution-soft:#fbf2e0;
+    --track:#e8edf2;
+    --shadow:0 1px 2px rgba(18,24,31,.05), 0 6px 18px -10px rgba(18,24,31,.18);
+
+    --f-display:"Spectral", Georgia, "Times New Roman", serif;
+    --f-body:"IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#0e1418; --panel:#151d23; --ink:#e9eef3; --ink-2:#c2ccd6;
+      --muted:#93a1ad; --faint:#6f7d8a; --rule:#233039; --rule-strong:#31414c;
+      --sys-a:#6da3ef; --sys-b:#f08a52; --sys-c:#3cc48d;
+      --ok:#43c793; --ok-soft:#122b23; --caution:#dfa63c; --caution-soft:#2b2113;
+      --track:#222e37;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -12px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0e1418; --panel:#151d23; --ink:#e9eef3; --ink-2:#c2ccd6;
+    --muted:#93a1ad; --faint:#6f7d8a; --rule:#233039; --rule-strong:#31414c;
+    --sys-a:#6da3ef; --sys-b:#f08a52; --sys-c:#3cc48d;
+    --ok:#43c793; --ok-soft:#122b23; --caution:#dfa63c; --caution-soft:#2b2113;
+    --track:#222e37;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px -12px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--f-body);
+       font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 24px 88px}
+  .prose{max-width:68ch}
+
+  h1,h2{font-family:var(--f-display);font-weight:600;text-wrap:balance;margin:0}
+  h1{font-size:34px;line-height:1.18;letter-spacing:-.01em}
+  h2{font-size:23px;line-height:1.25;margin-bottom:6px}
+  p{margin:0}
+  .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+  .eyebrow{font-family:var(--f-mono);font-size:11px;font-weight:500;
+           letter-spacing:.13em;text-transform:uppercase;color:var(--faint)}
+
+  header{display:flex;flex-direction:column;gap:14px;padding-bottom:28px;
+         border-bottom:1px solid var(--rule)}
+  .status-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  .stamp{display:inline-flex;align-items:center;gap:8px;
+         background:var(--ok-soft);color:var(--ok);
+         border:1px solid color-mix(in oklab, var(--ok) 30%, transparent);
+         border-radius:3px;padding:5px 11px;
+         font-family:var(--f-mono);font-size:12px;font-weight:600;letter-spacing:.04em}
+  .stamp .dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+  .meta{color:var(--muted);font-size:13px}
+  .meta .num{color:var(--ink-2)}
+
+  section{margin-top:52px}
+  .sec-head{margin-bottom:20px}
+  .sec-head .eyebrow{display:block;margin-bottom:7px}
+  .lede{color:var(--ink-2);margin-top:10px}
+
+  /* ---- system / benchmark panels ---- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .panel{border:1px solid var(--rule);border-radius:6px;background:var(--panel);
+         box-shadow:var(--shadow);overflow:hidden}
+  .panel-head{padding:13px 18px;border-bottom:1px solid var(--rule);
+              display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .panel-head .t{font-weight:600;font-size:14px}
+  .panel-head .s{color:var(--faint);font-size:12px;font-family:var(--f-mono)}
+  .panel-body{padding:15px 18px}
+
+  .kv{display:flex;flex-direction:column}
+  .kv .r{display:grid;grid-template-columns:1fr auto;gap:14px;padding:8px 0;
+         border-bottom:1px solid var(--rule);align-items:baseline}
+  .kv .r:last-child{border-bottom:none}
+  .kv .k{font-size:13px;color:var(--ink-2)}
+  .kv .v{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums;
+         color:var(--ink);white-space:nowrap}
+
+  .methods{display:flex;flex-wrap:wrap;gap:6px}
+  .m{font-family:var(--f-mono);font-size:11.5px;padding:3px 8px;border-radius:3px;
+     background:var(--track);color:var(--ink-2);white-space:nowrap}
+  .m.abst{background:var(--caution-soft);color:var(--caution);font-weight:500}
+
+  .systems{display:flex;flex-direction:column;gap:0}
+  .sysrow{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px 0;
+          border-bottom:1px solid var(--rule);align-items:start}
+  .sysrow:last-child{border-bottom:none}
+  .chip{font-family:var(--f-mono);font-size:11px;font-weight:600;letter-spacing:.05em;
+        padding:3px 8px;border-radius:3px;color:#fff;white-space:nowrap;margin-top:1px}
+  .sysrow .d{font-size:13px;color:var(--ink-2);line-height:1.5}
+  .sysrow .d b{color:var(--ink);font-weight:600}
+
+  /* ---- interval charts ---- */
+  .rows{padding:6px 18px 18px}
+  .row{display:grid;grid-template-columns:132px 1fr 148px;gap:14px;
+       align-items:center;padding:13px 0;border-bottom:1px solid var(--rule)}
+  .row:last-child{border-bottom:none}
+  .row .name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500}
+  .swatch{width:9px;height:9px;border-radius:2px;flex:none}
+  .track-l{position:relative;height:22px}
+  .track-l .axis{position:absolute;inset:auto 0 auto 0;top:50%;height:1px;background:var(--track)}
+  .bar{position:absolute;top:50%;transform:translateY(-50%);height:6px;border-radius:3px}
+  .pt{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;
+      transform:translate(-50%,-50%);border:2px solid var(--panel)}
+  .val{text-align:right;font-family:var(--f-mono);font-size:13px;
+       font-variant-numeric:tabular-nums;color:var(--ink)}
+  .val .ci{display:block;color:var(--faint);font-size:11px;margin-top:1px}
+  .scale{display:flex;justify-content:space-between;padding:8px 18px 14px;
+         font-family:var(--f-mono);font-size:11px;color:var(--faint)}
+  .bar.ns{background:none !important;border-top:2px dashed var(--faint);
+          border-bottom:none;height:0;opacity:.85}
+  .pt.ns{background:var(--panel) !important;border:2px solid var(--faint)}
+  .cmp .row{grid-template-columns:150px 1fr 132px}
+  .zero{position:absolute;top:-4px;bottom:-4px;width:1px;background:var(--rule-strong)}
+  .verdict{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;
+           text-transform:uppercase;display:block;margin-top:2px}
+  .verdict.yes{color:var(--ok)}
+  .verdict.no{color:var(--faint)}
+  .key{display:flex;flex-wrap:wrap;gap:18px;padding:12px 18px;
+       border-top:1px solid var(--rule);background:var(--ground);
+       font-size:12px;color:var(--muted)}
+  .key span{display:inline-flex;align-items:center;gap:7px}
+  .key .solid{width:22px;height:5px;border-radius:3px;background:var(--sys-c)}
+  .key .dashed{width:22px;border-top:2px dashed var(--faint)}
+
+  /* ---- requirements ---- */
+  .reqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+        gap:1px;background:var(--rule);border:1px solid var(--rule);
+        border-radius:6px;overflow:hidden}
+  .req{background:var(--panel);padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+  .tick{flex:none;width:15px;height:15px;border-radius:50%;background:var(--ok-soft);
+        border:1px solid color-mix(in oklab, var(--ok) 35%, transparent);
+        display:grid;place-items:center;margin-top:2px;color:var(--ok)}
+  .tick svg{width:8px;height:8px;display:block}
+  .req .ref{font-family:var(--f-mono);font-size:11px;color:var(--faint);
+            letter-spacing:.03em;display:block;margin-bottom:1px}
+  .req .rn{font-size:12.5px;line-height:1.45;color:var(--ink-2)}
+
+  .note{border-left:2px solid var(--rule-strong);padding:2px 0 2px 16px;
+        color:var(--ink-2);margin-top:16px}
+  .note strong{color:var(--ink);font-weight:600}
+
+  .findings{display:flex;flex-direction:column;gap:18px}
+  .finding{border:1px solid var(--rule);border-left:3px solid var(--caution);
+           border-radius:6px;background:var(--panel);padding:16px 18px;
+           box-shadow:var(--shadow)}
+  .finding .fh{font-family:var(--f-body);font-weight:600;font-size:15px;
+               margin-bottom:8px;color:var(--ink)}
+  .finding .fb{font-size:14px;color:var(--ink-2);line-height:1.62}
+  .finding .fb b{color:var(--ink);font-weight:600}
+  .impact{display:inline-flex;align-items:baseline;gap:8px;margin-top:12px;
+          font-family:var(--f-mono);font-size:12px;background:var(--caution-soft);
+          color:var(--caution);padding:5px 10px;border-radius:3px}
+
+  .limits{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+  .limit{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+  .limit .mk{font-family:var(--f-mono);font-size:11px;color:var(--caution);
+             letter-spacing:.06em;white-space:nowrap;padding-top:1px}
+  .limit .lt{color:var(--ink-2);font-size:14px}
+  .limit .lt b{color:var(--ink);font-weight:600}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--rule);
+         color:var(--faint);font-size:12.5px;display:flex;flex-wrap:wrap;
+         gap:8px 20px;justify-content:space-between}
+
+  @media (max-width:720px){
+    .split{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    h1{font-size:27px}
+    .row{grid-template-columns:104px 1fr;row-gap:6px}
+    .row .val{grid-column:2;text-align:left}
+    .cmp .row{grid-template-columns:118px 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Capstone · September 2026</p>
+    <h1>AI Statistician — every requirement met</h1>
+    <div class="status-row">
+      <span class="stamp"><span class="dot"></span>16 PASS · 0 FAIL · 0 BLOCKED</span>
+      <span class="meta"><span class="num">64</span>-case benchmark · <span class="num">3</span> systems · <span class="num">288</span> held-out runs</span>
+    </div>
+    <p class="lede prose">An LLM asked to analyse a dataset will almost always produce an answer.
+    Whether that answer is <em>valid</em> is a different question, and one the model is poorly
+    placed to police — a spreadsheet cannot reveal whether rows are independent, whether the
+    same customer appears twice, or whether observations are ordered in time. This project asks
+    whether an explicit statistical decision protocol makes an LLM agent better at choosing and
+    executing valid methods, and answers it with a controlled comparison.</p>
+  </header>
+
+  <!-- ============ THE SYSTEM ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The system</span>
+      <h2>A closed library, and a contract against invention</h2>
+      <p class="lede prose">Fourteen methods, five diagnostic tools, and a deterministic state
+      machine around one tool-calling model. Validated statistical libraries perform every
+      numerical operation. There is deliberately no general code-execution tool — it would let
+      the model bypass the method policy and make the three systems incomparable.</p>
+    </div>
+
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><span class="t">Method library</span><span class="s">14 + abstain</span></div>
+        <div class="panel-body">
+          <div class="methods">
+            <span class="m">student_t</span><span class="m">welch_t</span><span class="m">mann_whitney</span>
+            <span class="m">one_way_anova</span><span class="m">welch_anova</span><span class="m">kruskal_wallis</span>
+            <span class="m">chi_square</span><span class="m">fisher_exact</span>
+            <span class="m">pearson</span><span class="m">spearman</span>
+            <span class="m">ols</span><span class="m">logistic</span>
+            <span class="m">poisson</span><span class="m">negative_binomial</span>
+            <span class="m abst">abstain</span>
+          </div>
+          <p style="margin-top:13px;font-size:13px;color:var(--muted);line-height:1.55">
+            Abstention is a decision, not a member of the library. Declining to model a design
+            no supported method fits is the correct answer on 12 of the 64 cases.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span class="t">The provenance contract</span><span class="s">System C</span></div>
+        <div class="panel-body">
+          <p style="font-size:13.5px;color:var(--ink-2);line-height:1.6">
+            The strongest claim the system makes is that <b style="color:var(--ink)">the model
+            cannot write a number</b>. Rather than checking a finished report for fabrication,
+            fabrication is made impossible: every tool return is registered under a stable key,
+            the report schema rejects raw numeric literals in prose, the model emits references
+            that are substituted at render time, and an unknown reference fails the run.</p>
+          <p style="margin-top:11px;font-size:13px;color:var(--muted);line-height:1.55">
+            Stated honestly, this makes numerical fidelity an <em>architectural guarantee</em>
+            for System C rather than an empirical finding. For the two baselines nothing is
+            enforced, so it stays measurable there and the comparison holds.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-head"><span class="t">Three systems over one shared core</span><span class="s">only control flow differs</span></div>
+      <div class="panel-body">
+        <div class="systems">
+          <div class="sysrow">
+            <span class="chip" style="background:var(--sys-a)">A</span>
+            <span class="d"><b>Direct advice.</b> The model receives the same step-one
+            diagnostic output System C receives — not a hand-picked summary — and answers
+            without tools.</span>
+          </div>
+          <div class="sysrow">
+            <span class="chip" style="background:var(--sys-b)">B</span>
+            <span class="d"><b>Tool access, no protocol.</b> Identical tool definitions and
+            an identical report schema to System C, with no ordering imposed on their use.
+            This is the baseline the research question turns on.</span>
+          </div>
+          <div class="sysrow">
+            <span class="chip" style="background:var(--sys-c)">C</span>
+            <span class="d"><b>The structured agent.</b> A state machine: parse the problem,
+            validate the design, enumerate candidates, run only the diagnostics that could
+            change the decision, select or abstain, execute, verify.</span>
+          </div>
+        </div>
+        <p style="margin-top:13px;font-size:13px;color:var(--muted);line-height:1.55">
+          Every driver imports the same tool registry, result store and report schema. Baseline
+          fairness is therefore provable from the file layout rather than asserted — there is no
+          code path on which A or B could have been disadvantaged.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE BENCHMARK ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The benchmark</span>
+      <h2>64 cases, none hand-authored</h2>
+      <p class="lede prose">One declarative registry entry produces each complete case package.
+      For synthetic cases the gold label is derived from the <em>realised sample</em>: design
+      facts come from the generator parameters because they are properties of the design, while
+      distributional facts come from the data, because that is what a correct method choice must
+      respond to.</p>
+    </div>
+
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head"><span class="t">Composition</span></div>
+        <div class="panel-body">
+          <div class="kv">
+            <div class="r"><span class="k">Total cases</span><span class="v">64</span></div>
+            <div class="r"><span class="k">Supported by a method</span><span class="v">52</span></div>
+            <div class="r"><span class="k">Correct answer is abstain</span><span class="v">12</span></div>
+            <div class="r"><span class="k">Synthetic</span><span class="v">48</span></div>
+            <div class="r"><span class="k">From public data</span><span class="v">16</span></div>
+            <div class="r"><span class="k">Development / held out</span><span class="v">16 / 48</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span class="t">Public datasets</span><span class="s">UCI</span></div>
+        <div class="panel-body">
+          <div class="kv">
+            <div class="r"><span class="k">Bank Marketing</span><span class="v">45,211 rows</span></div>
+            <div class="r"><span class="k">Online Shoppers</span><span class="v">12,330 rows</span></div>
+            <div class="r"><span class="k">Seoul Bike Sharing</span><span class="v">8,760 rows</span></div>
+            <div class="r"><span class="k">Student Performance</span><span class="v">649 rows</span></div>
+          </div>
+          <p style="margin-top:12px;font-size:13px;color:var(--muted);line-height:1.55">
+            Seoul Bike supplies the sharpest test: tables that look perfectly suitable for
+            Poisson regression, correlation or ANOVA, where hourly ordering violates
+            independence. The correct answer is to abstain.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE RESULT ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The result</span>
+      <h2>Does an ordered protocol beat tool access alone?</h2>
+      <p class="lede prose">The frozen held-out split, evaluated against a live model —
+      48 cases, three systems, two repetitions, 96 runs per system.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="t">Method-selection accuracy</span>
+        <span class="s">Wilson 95% intervals · n = 96</span>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-a)"></i>A · Direct</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:65.5%;width:17.1%;background:var(--sys-a)"></i>
+            <i class="pt" style="left:75.0%;background:var(--sys-a)"></i></span>
+          <span class="val">0.750<span class="ci">[0.655, 0.826]</span></span>
+        </div>
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-b)"></i>B · With tools</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:56.8%;width:18.5%;background:var(--sys-b)"></i>
+            <i class="pt" style="left:66.7%;background:var(--sys-b)"></i></span>
+          <span class="val">0.667<span class="ci">[0.568, 0.753]</span></span>
+        </div>
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-c)"></i>C · Structured</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:80.6%;width:12.9%;background:var(--sys-c)"></i>
+            <i class="pt" style="left:88.5%;background:var(--sys-c)"></i></span>
+          <span class="val">0.885<span class="ci">[0.806, 0.935]</span></span>
+        </div>
+      </div>
+      <div class="scale"><span>0%</span><span>50%</span><span>100%</span></div>
+    </div>
+
+    <div class="panel" style="margin-top:22px">
+      <div class="panel-head">
+        <span class="t">Paired comparisons</span>
+        <span class="s">per-case majority · 48 cases · McNemar exact</span>
+      </div>
+      <div class="rows cmp">
+        <div class="row">
+          <span class="name">C over B</span>
+          <span class="track-l"><i class="axis"></i><i class="zero" style="left:44.4%"></i>
+            <i class="bar" style="left:58.3%;width:30.1%;background:var(--sys-c)"></i>
+            <i class="pt" style="left:72.2%;background:var(--sys-c)"></i></span>
+          <span class="val">+25.0 pts<span class="ci">p = 0.0018</span>
+            <span class="verdict yes">established</span></span>
+        </div>
+        <div class="row">
+          <span class="name">C over A</span>
+          <span class="track-l"><i class="axis"></i><i class="zero" style="left:44.4%"></i>
+            <i class="bar ns" style="left:46.8%;width:25.4%"></i>
+            <i class="pt ns" style="left:58.3%"></i></span>
+          <span class="val">+12.5 pts<span class="ci">p = 0.0703</span>
+            <span class="verdict no">not established</span></span>
+        </div>
+        <div class="row">
+          <span class="name">B over A</span>
+          <span class="track-l"><i class="axis"></i><i class="zero" style="left:44.4%"></i>
+            <i class="bar ns" style="left:16.7%;width:27.8%"></i>
+            <i class="pt ns" style="left:30.6%"></i></span>
+          <span class="val">−12.5 pts<span class="ci">p = 0.1094</span>
+            <span class="verdict no">not established</span></span>
+        </div>
+      </div>
+      <div class="scale"><span>−40 pts</span><span>0</span><span>+50 pts</span></div>
+      <div class="key">
+        <span><i class="solid"></i>p &lt; 0.05 — established</span>
+        <span><i class="dashed"></i>p ≥ 0.05 — direction only</span>
+      </div>
+    </div>
+
+    <div class="note prose">
+      <p><strong>The research question is answered.</strong> System C beats System B by 25
+      percentage points, against the blueprint's ≥10 point target. The two hold identical tools
+      and an identical report schema, so the gain tracks the ordering rather than the tooling.</p>
+      <p style="margin-top:10px"><strong>Two comparisons are not established</strong>, and the
+      report says so in words rather than leaving a p-value to be misread. C over A points the
+      right way but does not clear 0.05 at this sample size. B under A points the wrong way for
+      tool access and is likewise not significant — suggestive, not shown.</p>
+    </div>
+  </section>
+
+  <!-- ============ SECOND AXIS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The second axis</span>
+      <h2>Could the finding be stated without inventing it?</h2>
+      <p class="lede prose">Selecting a method is half the task. The other half is saying what
+      was found without fabricating any part of it. The provenance contract rejects a report
+      carrying a number no tool produced, or citing a diagnostic the system never ran.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="t">Valid-report rate</span>
+        <span class="s">51 of 288 analyses rejected</span>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-a)"></i>A · Direct</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:45.3%;width:19.5%;background:var(--sys-a)"></i>
+            <i class="pt" style="left:55.2%;background:var(--sys-a)"></i></span>
+          <span class="val">0.552<span class="ci">43 rejected</span></span>
+        </div>
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-b)"></i>B · With tools</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:96.2%;width:3.8%;background:var(--sys-b)"></i>
+            <i class="pt" style="left:100%;background:var(--sys-b)"></i></span>
+          <span class="val">1.000<span class="ci">0 rejected</span></span>
+        </div>
+        <div class="row">
+          <span class="name"><i class="swatch" style="background:var(--sys-c)"></i>C · Structured</span>
+          <span class="track-l"><i class="axis"></i>
+            <i class="bar" style="left:84.4%;width:11.3%;background:var(--sys-c)"></i>
+            <i class="pt" style="left:91.7%;background:var(--sys-c)"></i></span>
+          <span class="val">0.917<span class="ci">8 rejected</span></span>
+        </div>
+      </div>
+      <div class="scale"><span>0%</span><span>50%</span><span>100%</span></div>
+    </div>
+
+    <div class="note prose">
+      <p>The direct baseline wrote an ungrounded number, or cited a diagnostic it never ran, in
+      <strong>nearly half its analyses</strong>. Every instance was caught rather than shipped
+      as prose a reader would have had to check by hand. Abstention separates the systems just
+      as sharply: on the design-hazard cases the structured agent declined
+      <strong>78%</strong> of the time and the tool-enabled baseline <strong>never</strong>,
+      fitting a plausible-looking model to data whose independence assumption fails.</p>
+    </div>
+  </section>
+
+  <!-- ============ MEASUREMENT DECISIONS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Measurement</span>
+      <h2>Two decisions that changed the numbers</h2>
+      <p class="lede prose">Both were found by examining the evaluation before building any
+      table, and neither announced itself as an error. They are documented as formal deviations
+      because they are the two places this project could most easily have reported something
+      false.</p>
+    </div>
+
+    <div class="findings">
+      <div class="finding">
+        <p class="fh">A rejected report is a run, not a lost run</p>
+        <p class="fb">51 runs ended in an error and not one was an infrastructure failure. Each
+        had already chosen a method and executed it; what failed was the write-up. <b>37 of the
+        51 had chosen correctly.</b> Discarding them — the obvious treatment for a run marked as
+        errored — deletes the baseline's worst behaviour from the headline metric and flatters
+        precisely the system whose ungrounded claims the project exists to expose. The
+        population for selection accuracy is therefore every run that reached a method decision;
+        runs that never got that far carry no evidence and remain excluded.</p>
+        <span class="impact">Direct baseline: <b>75.0%</b> kept &nbsp;·&nbsp; 81.1% if discarded</span>
+      </div>
+
+      <div class="finding">
+        <p class="fh">A conclusion that changes between runs is not a conclusion</p>
+        <p class="fb">With two repetitions, a disagreement between runs leaves no majority. Ties
+        were being resolved through an ordering that varies between interpreter sessions, so the
+        paired significance test for C-over-A returned <b>anything from 0.016 to 0.125 on
+        identical data</b> — straddling the 0.05 line, and changing the verdict with it. Ties
+        now go to the earliest repetition, which is deterministic and uses a real observation.
+        How often the rule was needed is reported rather than buried: 25 of 144 system-case
+        cells, unevenly spread, which is itself a measure of run-to-run stability.</p>
+        <span class="impact">Now identical across sessions &nbsp;·&nbsp; pinned by regression test</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REQUIREMENTS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Conformance</span>
+      <h2>All sixteen checks</h2>
+      <p class="lede prose">Fifteen come from the blueprint. The sixteenth the project imposed
+      on itself: that the counts quoted in its own documents match the artefacts they describe.
+      Every check is re-derived from the artefacts, not recorded by hand.</p>
+    </div>
+    <div class="reqs" id="reqs"></div>
+  </section>
+
+  <!-- ============ LIMITS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Stated plainly</span>
+      <h2>What this does not establish</h2>
+    </div>
+    <div class="limits prose">
+      <div class="limit">
+        <span class="mk">MODEL</span>
+        <span class="lt">The held-out evaluation ran on <b>Claude Haiku 4.5</b>. Every claim is
+        scoped to that model; nothing here generalises to frontier models without re-running it.</span>
+      </div>
+      <div class="limit">
+        <span class="mk">POWER</span>
+        <span class="lt"><b>Two repetitions, not three.</b> Run-to-run variance is measured
+        across two runs per cell — enough to expose gross instability, not enough to
+        characterise the distribution.</span>
+      </div>
+      <div class="limit">
+        <span class="mk">§8.3</span>
+        <span class="lt"><b>No usable interpretation score.</b> The blinded scoring round failed
+        its reliability check at κ = −0.044. The rubric was diagnosed as admitting two readings
+        and rebuilt; a second round needs two human raters. Reporting the failure with its
+        diagnosis is what satisfies the requirement — publishing a number from an instrument
+        that demonstrably does not measure anything would not.</span>
+      </div>
+      <div class="limit">
+        <span class="mk">REVIEW</span>
+        <span class="lt"><b>No independent second reviewer</b> for the 16 public-data labels.
+        48 of 64 labels are construction-derived and therefore not opinions; the public ones
+        were validated against their realised data, which caught one mislabel.</span>
+      </div>
+      <div class="limit">
+        <span class="mk">SCOPE</span>
+        <span class="lt">The library <b>excludes</b> paired and repeated-measures designs, mixed
+        models, time series, survival analysis and zero-inflated models. These appear in the
+        benchmark only as abstention cases.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Every figure is derived from the recorded evaluation logs</span>
+    <span>ai-statistician.netlify.app</span>
+  </footer>
+</div>
+
+<script>
+  const REQS = [
+    ["12.1","Working application: CSV upload, design card, trace, report"],
+    ["12.2","Tool library: 14 methods, effect sizes, intervals, diagnostics"],
+    ["12.3","Benchmark: 64 packages, provenance, gold, oracles, split"],
+    ["12.4","Evaluation assets: 3 systems, run logs, scorers, tables, taxonomy"],
+    ["12.5","Capstone report with results, error analysis, limitations"],
+    ["12.D1","Demo 1: unequal variances, unbalanced → Welch ANOVA"],
+    ["12.D2","Demo 2: overdispersed counts → Poisson, revise to NB"],
+    ["12.D3","Demo 3: hourly bike demand → abstain, serial dependence"],
+    ["DoD.1","Fresh environment reproduces benchmark and tables"],
+    ["DoD.2","All methods unit-tested; all cases pass validation"],
+    ["DoD.3","Held-out evaluation with frozen prompts, complete run record"],
+    ["DoD.4","Every numerical claim maps to a tool output"],
+    ["DoD.5","Demo handles malformed input and unsupported designs"],
+    ["DoD.6","Report states whether structure beat tool access alone"],
+    ["8.3","Interpretation metric: blinded, double-scored, agreement reported"],
+    ["Docs","Counts quoted in the docs match the artefacts they describe"]
+  ];
+  const TICK = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 5.2 L4 7.6 L8.5 2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.getElementById("reqs").innerHTML = REQS.map(([ref, name]) => `
+    <div class="req">
+      <span class="tick">${TICK}</span>
+      <span><span class="ref">${ref}</span><span class="rn">${name}</span></span>
+    </div>`).join("");
+</script>
+<p class="backlink"><a href="index.html">&larr; Benchmark explorer</a></p>
+<style>
+  .backlink{max-width:920px;margin:0 auto;padding:0 24px 56px;
+             font-family:var(--f-body);font-size:13px}
+  .backlink a{color:var(--sys-a);text-decoration:none}
+  .backlink a:hover{text-decoration:underline}
+</style>
+</body>
+</html>

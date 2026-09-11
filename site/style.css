@@ -242,3 +242,12 @@ footer p { font-size: 0.82rem; color: var(--ink-3); max-width: 70ch; }
 .site-figure figcaption {
   font-size: 0.82rem; color: var(--ink-3); margin-top: 0.5rem; max-width: 46rem;
 }
+
+/* The status page is a separate document, not a JS view, so its entry in the
+   tab strip is an anchor. Matches the tab shape; never takes the active state. */
+.tab-link{
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+.tab-link:hover{text-decoration:none}

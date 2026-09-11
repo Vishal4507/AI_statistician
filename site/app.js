@@ -48,6 +48,10 @@ async function boot() {
 document.addEventListener("click", (e) => {
   const tab = e.target.closest(".tab");
   if (!tab) return;
+  // The status page sits in the tab strip but is a separate document, not a
+  // view. Without this, clicking it would clear state.view and re-render the
+  // explorer to its fallback in the moment before the browser navigated away.
+  if (tab.tagName === "A") return;
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("is-active"));
   tab.classList.add("is-active");
   state.view = tab.dataset.view;
