@@ -1618,6 +1618,324 @@ def presentation_script():
     return st
 
 
+# Questions a professor is likely to ask, answered in the presenter's voice.
+QBANK = [
+    ("Why this problem", [
+        ("Why did you choose this problem?",
+         "Because AI tools are being used more and more to analyse data, often by "
+         "people who aren't statisticians. And the mistakes they make aren't the "
+         "obvious kind. The numbers add up and the report reads well, but the "
+         "method can still be wrong for the data. That kind of mistake is hard to "
+         "spot, so I wanted to see if it could be prevented."),
+        ("Why does it matter if an AI uses the wrong statistical test?",
+         "Because the conclusion can be wrong even when everything looks right. If "
+         "you use a test that assumes independent observations on data that isn't "
+         "independent, you can end up much more confident than you should be. "
+         "Someone could make a business or policy decision on that, and nothing in "
+         "the report would warn them."),
+        ("Why can't the AI just work out the study design from the data?",
+         "Because the information isn't there. A spreadsheet doesn't tell you "
+         "whether the same person appears twice, or whether the rows are in time "
+         "order, or whether measurements were grouped. Those are facts about how "
+         "the data was collected. That's why I give the system a design card with "
+         "that information, and score whether it actually uses it."),
+        ("Who would actually use something like this?",
+         "Anyone who needs to analyse data but can't check the method themselves. "
+         "Business analysts, researchers outside statistics, policy teams, "
+         "students. They're exactly the people most likely to trust an AI's answer, "
+         "and the least able to catch it when the method is wrong."),
+    ]),
+    ("How the system is designed", [
+        ("Why did you limit it to 14 methods?",
+         "Mainly so I could score it. If the AI could use any method it liked, "
+         "there'd be no clear right answer to mark it against, and it would turn "
+         "into grading essays. Fourteen methods covers the most common kinds of "
+         "question, like comparing groups, testing association and regression, "
+         "which is enough to test the idea properly."),
+        ("Why didn't you let the AI write and run its own code?",
+         "Because it could then skip the procedure completely. It could just write "
+         "whatever analysis it wanted, and the three systems wouldn't be doing "
+         "comparable work anymore. Keeping the tools fixed means the only thing "
+         "that differs between them is the procedure."),
+        ("Why is declining counted as a correct answer?",
+         "Because sometimes it genuinely is the right answer. If every method you "
+         "have is invalid for the data, the responsible thing is to say so. In my "
+         "benchmark, 12 of the 64 cases are like that. If I didn't reward "
+         "declining, I'd be rewarding the system for answering things it shouldn't "
+         "have answered."),
+        ("What exactly is a design card, and who fills it in?",
+         "It's a short description of how the study was set up. Whether the "
+         "observations are independent, whether anything is paired, whether "
+         "there's a time order, whether data is grouped. In my benchmark it's "
+         "filled in as part of each case. In a real tool, that's something the "
+         "system would need to ask the user, and that's one of the things I'd "
+         "build next."),
+        ("How does the provenance contract actually work?",
+         "Every real calculation stores its result under a label. The report "
+         "format refuses any number typed straight into the text, so the model "
+         "has to write a reference to the label instead. At the end, each "
+         "reference is swapped for the stored value. If it references something "
+         "that was never calculated, the whole run fails. So a made-up number "
+         "can't get into the report at all."),
+        ("If made-up numbers are impossible in system C, isn't its accuracy on "
+         "numbers automatic?",
+         "Yes, and that's why I don't count it as a result. It's guaranteed by the "
+         "way it's built. What I actually measure is how often the model tried to "
+         "reference something that didn't exist, and that's reported separately."),
+        ("Why did you build three systems instead of just two?",
+         "Because two wouldn't tell me what's causing the improvement. If I only "
+         "compared a plain AI with my full system, I couldn't tell whether the gain "
+         "came from the tools or from the procedure. Adding B, which has the tools "
+         "but no procedure, lets me separate those two things."),
+        ("How did you make sure the comparison was fair?",
+         "All three systems share the same core code. The same tools, the same "
+         "result store, the same report format. The only thing that changes is "
+         "the order they work in. So there's no place in the code where one of "
+         "the baselines could have been given something worse."),
+    ]),
+    ("The benchmark", [
+        ("How did you build the 64 cases?",
+         "Each case is generated from a definition rather than written by hand. "
+         "48 are synthetic, where I control how the data is generated, and 16 "
+         "come from four public datasets. Each case comes with the data, the "
+         "question, the design card and the correct answer."),
+        ("How do you know your answer key is right?",
+         "For 48 of the 64 cases, the correct answer comes from how the data was "
+         "built, not from my judgement. And I base it on the data that actually "
+         "came out, not what I meant to generate. For the 16 public cases, I "
+         "checked every label against the real data. That found one label that "
+         "was wrong, and I fixed it."),
+        ("Why use synthetic data? Isn't real data better?",
+         "Real data is more realistic, but with synthetic data I know the true "
+         "answer for certain, because I know exactly how it was made. That makes "
+         "the scoring trustworthy. I used both, so the synthetic cases give me a "
+         "reliable answer key and the real datasets check it holds up on messy "
+         "data."),
+        ("Why did you choose these four datasets?",
+         "Between them they cover the different kinds of question in the library. "
+         "Bank Marketing and Online Shoppers give categorical and logistic "
+         "problems, Student Performance gives group comparisons and regression, "
+         "and Seoul Bike gives the design-hazard cases where the rows aren't "
+         "independent."),
+    ]),
+    ("The evaluation and the statistics", [
+        ("Why did you keep 48 cases hidden?",
+         "To avoid tuning the system to the test. If I'd adjusted the instructions "
+         "while looking at the same cases I measured on, a good score would just "
+         "mean I'd fitted it to those answers. Keeping 48 cases locked away until "
+         "the end means the result reflects cases the system had never been "
+         "shaped around."),
+        ("When did you freeze everything?",
+         "Before the held-out run. I fixed the instructions given to the model, "
+         "the model version and the code, and recorded a fingerprint of the "
+         "instructions. So nothing could change between the development stage and "
+         "the final test."),
+        ("Why McNemar's test?",
+         "Because every case was answered by all three systems, so the results are "
+         "paired. And each result is just right or wrong. McNemar's test is built "
+         "for exactly that. It only looks at the cases where the two systems "
+         "disagreed, which is where the real difference shows up."),
+        ("Why did you compare case by case using a majority?",
+         "Each case was run twice, and McNemar's test assumes each pair is "
+         "independent. Two runs of the same case aren't two separate cases, so "
+         "counting both would make the result look stronger than it is. So I take "
+         "one answer per case, the majority across the runs."),
+        ("Why only two runs per case?",
+         "It came down to resources. Two runs were enough to show the main result "
+         "and to see how consistent the systems were, but not enough to fully "
+         "describe the variation. More runs is one of the first things I'd add."),
+        ("Why did you use Claude Haiku 4.5 and not a bigger model?",
+         "I'm only claiming results for Haiku 4.5, because that's what I tested. "
+         "The system itself works with any model, and testing on bigger ones is a "
+         "clear next step. Whether the procedure still helps as models get "
+         "stronger is actually one of the more interesting open questions."),
+        ("Why didn't you set the temperature to zero?",
+         "On current models that setting has been removed, and it returns an error "
+         "if you send it. So instead I fixed the model version and the effort "
+         "level, froze the instructions, and measured how much the results varied "
+         "between runs, rather than assuming they wouldn't."),
+        ("What do the 95% intervals on your charts mean?",
+         "They show the range the true accuracy is likely to fall in, given how "
+         "many cases I tested. A wide interval means I'm less certain. I used "
+         "Wilson intervals because they behave properly near 0% and 100%, which "
+         "matters for results like the abstention rates."),
+    ]),
+    ("The results", [
+        ("What is the most important result?",
+         "That system C beat system B by 25 percentage points, with a p-value of "
+         "0.0018. B has exactly the same tools as C, so that difference comes from "
+         "the procedure. My target at the start was 10 points."),
+        ("Why did B do worse than A, even though B has tools?",
+         "Because having tools let B produce an answer for everything, including "
+         "the cases where it should have stopped. B never declined once on the "
+         "cases where every method was invalid. So the tools made it more "
+         "confident, not more careful. That's really the point of the project."),
+        ("C over A isn't significant. So is the procedure really better than "
+         "nothing?",
+         "I can't claim that yet. It's 12.5 points in C's favour, and the cases "
+         "where they disagreed split seven to one for C. But with 48 cases it isn't "
+         "enough to rule out chance. When I worked out the power afterwards, my "
+         "test only had about a 45% chance of detecting a difference that size. So "
+         "it's unresolved, not a negative result."),
+        ("Why is B at 100% on grounding but the worst on accuracy?",
+         "They measure different things. Grounding asks whether the numbers in the "
+         "report came from real calculations. B uses real tools, so its numbers "
+         "are real. Accuracy asks whether it picked the right method, and that's "
+         "where B goes wrong. It calculates the wrong thing correctly."),
+        ("Doesn't C just look better because it refuses to answer more?",
+         "No. C never declined a case that actually had a valid method. That rate "
+         "was zero. Every time it declined, declining was the right call. And on "
+         "the cases that could be answered, it picked the right method 91% of the "
+         "time, which is higher than both A and B."),
+        ("The expert policy scored 100%. Doesn't that prove it works?",
+         "No, that score is circular. The expert policy is the rule set that "
+         "produced the answer key, so of course it gets everything right. I only "
+         "use it to check that my testing setup works. The more useful result is a "
+         "deliberately weak policy inside the same structure. It only got 60% and "
+         "never declined, which shows the structure on its own isn't enough."),
+    ]),
+    ("Difficulties and limitations", [
+        ("What was the hardest part?",
+         "Honestly, checking my own measurements. The system worked, but two "
+         "things in how I was measuring it were wrong, and neither one showed up "
+         "as an error. One would have made system A look 6 points better, and the "
+         "other made the same data give different p-values each time I ran it. I "
+         "only found them by going through the results carefully."),
+        ("Why did you keep the runs that ended in errors?",
+         "Because none of them were technical failures. Each one had already "
+         "chosen a method before its report was rejected, and 37 of them had "
+         "chosen correctly. If I'd thrown them out, I'd have hidden the cases where "
+         "system A was worst, and it would have looked 6 points better than it "
+         "is."),
+        ("What went wrong with the interpretation scoring?",
+         "I had two people score the written explanations blind, but they didn't "
+         "agree with each other. The agreement score was minus 0.044, which is "
+         "worse than chance. The problem was the rubric. One of its levels could be "
+         "read two ways. I rebuilt it, and left that measure out rather than "
+         "report a number I couldn't trust."),
+        ("When does your system still fail?",
+         "It's not perfect. On the design-hazard cases it missed 4 of 18 and went "
+         "ahead with a method anyway. On the answerable cases it picked the wrong "
+         "method about 9% of the time, mostly from diagnostic reasoning rather "
+         "than the design check. And 8 of its reports were rejected for "
+         "referencing something that hadn't been calculated."),
+        ("When shouldn't someone use this?",
+         "For any design the library doesn't cover, like repeated measures, "
+         "mixed models or time series. In those cases it's built to decline, "
+         "which is safe, but it can't give you an analysis. It also depends on "
+         "the design card being filled in honestly. If the design information is "
+         "wrong, its decision will be too."),
+    ]),
+    ("Challenging questions", [
+        ("Isn't this just prompt engineering?",
+         "It's more than wording. The order is enforced in code, so the model "
+         "can't skip the design check, and the report format physically rejects "
+         "typed numbers. That's structure, not phrasing. But I'd be honest that "
+         "structure alone isn't enough. A weak policy inside the same structure "
+         "only reached 60%. What works is the structure plus good judgement at "
+         "each step."),
+        ("Couldn't system B just do what C does?",
+         "In theory, yes. It has every tool C has, and nothing stops it running "
+         "the same checks. What it doesn't have is the rule to check the design "
+         "first, or permission to stop. The results show that without those, it "
+         "doesn't do it by itself."),
+        ("Won't a better model make the procedure unnecessary?",
+         "I don't know yet, and I think it's a fair question. B's problem wasn't a "
+         "lack of ability. It had the tools. The problem was that it never checked "
+         "the design before answering, and nothing forced it to. A stronger model "
+         "might check more often on its own, but that's something I'd need to "
+         "test, not assume."),
+        ("How do you know the result isn't just specific to your benchmark?",
+         "I can't fully rule that out. It's 64 cases I designed, plus four public "
+         "datasets. Keeping 48 cases hidden means the system wasn't tuned to them, "
+         "but the kinds of cases still reflect my choices. Testing on a broader, "
+         "independent set of problems would be the way to show it generalises."),
+        ("What would you do differently if you started again?",
+         "I'd plan for a bigger held-out set from the start, so the C versus A "
+         "comparison had enough power. I'd get a second person reviewing the "
+         "public-data labels from the beginning. And I'd test the scoring rubric "
+         "with a small pilot before running the full blind round, which would have "
+         "caught the problem early."),
+    ]),
+]
+
+# Future development, in the presenter's voice.  The case count for resolving
+# C over A comes from a power simulation on the observed held-out table.
+FUTURE = [
+    ("Settle the C over A question",
+     "This is the first thing I'd do. At the size of effect I saw, my test only "
+     "had about a 45% chance of detecting it, which is basically a coin flip. To "
+     "get an 80% chance, I'd need around 90 held-out cases, roughly double what I "
+     "have now. That number assumes the real effect is as big as the one I "
+     "measured, which tends to be optimistic, so I'd treat 90 as a minimum."),
+    ("Ask the user for the design card",
+     "Right now the design card comes with each benchmark case. In a real tool, "
+     "nobody hands you that. So the next version should ask the user short, plain "
+     "questions before it picks a method. Were the same people measured more than "
+     "once? Are these readings in time order? That's the biggest step between "
+     "this being a research system and something people can actually use."),
+    ("Test it on bigger models",
+     "I want to know whether the procedure still helps as models get more "
+     "capable, or whether a strong enough model starts checking the design on its "
+     "own. Because everything is frozen and repeatable, I can run the exact same "
+     "evaluation on a larger model and compare directly."),
+    ("Cover more kinds of study design",
+     "At the moment the system can only decline for designs like repeated "
+     "measures, mixed models, time series and survival data. Adding those methods "
+     "would let it actually analyse them instead. The bike sharing case, for "
+     "example, could get a proper time-series analysis rather than just a "
+     "refusal."),
+    ("Fix the interpretation scoring",
+     "I'd run a second blind round with the rebuilt rubric, after a small pilot "
+     "to make sure two scorers agree on what each level means. If they agree, I "
+     "can finally report how good each system's written explanations are, which "
+     "is the one metric I had to leave out."),
+    ("Get an independent reviewer",
+     "Having a second person check the public-data labels would make the answer "
+     "key stronger. Most labels come from how the data was built, but the 16 "
+     "public ones would benefit from a second opinion."),
+    ("Measure the effort and cost trade-off",
+     "I'd run each system at different effort levels to see how much accuracy "
+     "you give up by making it faster or cheaper. That would show whether the "
+     "procedure is worth it in a real setting where cost matters."),
+    ("Turn it into a tool people can use",
+     "The end goal is something where you upload a dataset, answer a few "
+     "questions about how it was collected, and get back a report you can trust, "
+     "with every number traceable to a real calculation. It could plug into "
+     "things people already use, like notebooks or spreadsheets. It could also "
+     "work as a teaching tool, explaining to students why a method was chosen or "
+     "rejected."),
+]
+
+
+def question_bank():
+    st = title_block(
+        "An LLM Agent for the Selection, Validation and Interpretation "
+        "of Statistical Methods", "Question Bank")
+    n = sum(len(qs) for _, qs in QBANK)
+    st.append(P(
+        f"{n} questions a professor is likely to ask, grouped by topic, each with "
+        "an answer in my own words. The last section is how I would take the "
+        "project further.", "caption"))
+
+    for i, (group, qs) in enumerate(QBANK):
+        if i:
+            st.append(Spacer(1, 6))
+        st.append(Paragraph(group, SS["slide"]))
+        for q, a in qs:
+            st.append(KeepTogether([Paragraph(q, SS["q"]),
+                                    Paragraph(a, SS["a"])]))
+
+    st.append(PageBreak())
+    st.append(Paragraph("How I would develop this project", SS["slide"]))
+    st.append(Paragraph("in the order I would do it", SS["time"]))
+    for k, (head, body) in enumerate(FUTURE, 1):
+        st.append(KeepTogether([
+            Paragraph(f"{k}.  {head}", SS["q"]),
+            Paragraph(body, SS["a"])]))
+    return st
+
+
 # ---------------------------------------------------------------- build ---
 
 def main() -> int:
@@ -1631,7 +1949,9 @@ def main() -> int:
             ("AI_Statistician_Presenting_Notes.pdf",
              "AI Statistician — Presenting Notes", presenting_points),
             ("AI_Statistician_Presentation_Script.pdf",
-             "AI Statistician — Presentation Script", presentation_script)]
+             "AI Statistician — Presentation Script", presentation_script),
+            ("AI_Statistician_Question_Bank.pdf",
+             "AI Statistician — Question Bank", question_bank)]
     for filename, running, builder in jobs:
         path = DOCS / filename
         doc = make_doc(path, running)
