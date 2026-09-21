@@ -1283,6 +1283,417 @@ def presenting_points():
     return st
 
 
+# ====================================================== PRESENTATION SCRIPT ==
+#
+# Spoken, first person, to be read aloud.  Written the way a student talks a
+# professor through their own work: short sentences, contractions, and the
+# occasional admission of what was surprising -- not the balanced, polished
+# prose of a written report.  Text in [brackets] is a cue, not something to say.
+
+SCRIPT = [
+    (1, "Title", 0.5, [
+        "Hello everyone. My name is Vishal Dhinesh Kumar, and my capstone project "
+        "is called AI Statistician.",
+        "The question I set out to answer is this. If you give an AI a proper "
+        "step-by-step procedure for doing statistics, does it choose the right "
+        "method more often than if you just give it the tools and let it work "
+        "things out on its own?",
+        "That's what I'm going to walk you through today.",
+    ]),
+    (2, "Problem statement", 2.0, [
+        "So let me start with the problem, because everything else in this "
+        "project comes back to it.",
+        "If you ask an AI to analyse a dataset, it will always give you an "
+        "answer. And that answer usually looks good. It's well written, it uses "
+        "the right terms, and the arithmetic is correct.",
+        "But none of that tells you whether the method was actually the right "
+        "one to use.",
+        "Whether a statistical method is valid depends on how the data was "
+        "collected. Are the observations independent of each other? Is the same "
+        "person measured twice? Are the rows in time order? These are facts about "
+        "the study design. And the important thing is, you can't see them in the "
+        "data file. A spreadsheet only shows you numbers.",
+        "[point to the three boxes] This creates three problems.",
+        "The first one is the most dangerous. The model can pick a method that "
+        "assumes something the data doesn't satisfy. Every number will still add "
+        "up, so it looks completely fine. But the conclusion is wrong.",
+        "The second is that the model can write a number that no calculation "
+        "ever produced. It reads like a real result, and the only way to catch it "
+        "is to redo the whole analysis yourself.",
+        "And the third is that nothing forces the model to stop and say, this "
+        "data doesn't fit any method I have. Giving it tools lets it calculate "
+        "things. It doesn't make it check whether it should.",
+        "That's the gap I wanted to work on.",
+    ]),
+    (3, "A motivating case", 1.5, [
+        "To make this concrete, here's an example from my benchmark.",
+        "This is the Seoul bike sharing dataset from the UCI repository. It has "
+        "8,760 rows, one for every hour of a year. The question is whether "
+        "temperature is related to how many bikes get rented.",
+        "If you look at this table, it looks like a textbook case. You'd probably "
+        "reach for a correlation, or a Poisson regression because it's count "
+        "data. And that's exactly what the systems did.",
+        "The problem is that both of those methods assume every observation is "
+        "independent. Here they're not. Two o'clock looks a lot like one o'clock, "
+        "because it's the same day, the same weather, the same commute. Each hour "
+        "is carrying information about the hours next to it.",
+        "And there's nothing in the file that tells you this. You only know it "
+        "because you know how the data was collected.",
+        "So in my system, that information comes in through what I call a design "
+        "card, which describes how the study was set up. The system is scored on "
+        "whether it actually uses it.",
+        "For this case, the correct answer is not to model it at all. It should "
+        "decline.",
+    ]),
+    (4, "Research question and hypotheses", 1.0, [
+        "So this is my research question. Does an explicit decision protocol help "
+        "an AI choose valid methods, compared with just asking it directly, and "
+        "compared with giving it tools but no protocol?",
+        "I tested three hypotheses. H1 is about selection, whether the protocol "
+        "picks the right method more often. H2 is about abstention, whether it "
+        "declines more reliably when no method fits. And H3 is about provenance, "
+        "whether it stops made-up numbers from getting into the final report.",
+        "One thing I want to point out. For H1, the main comparison is C against "
+        "B, not C against A. That's on purpose. B has exactly the same tools and "
+        "the same report format as C. The only thing different is the procedure. "
+        "So if C beats B, I know it's the procedure that made the difference, not "
+        "the tools.",
+    ]),
+    (5, "Scope and design decisions", 1.0, [
+        "Before the results, a few design decisions that make this testable.",
+        "[point to the left] This is the method library. I limited it to fourteen "
+        "methods, grouped by the kind of question. Two groups, three or more "
+        "groups, categorical data, association, and regression. And there's a "
+        "fifteenth option, which is to abstain.",
+        "I kept it closed on purpose. If the model could invent any method it "
+        "wanted, there'd be no clear way to mark whether its choice was right. It "
+        "would turn into grading essays.",
+        "I also didn't give it a general tool to run any code it likes. If I had, "
+        "it could skip the procedure completely, and then the three systems "
+        "wouldn't be doing comparable work.",
+        "And the designs I didn't cover, like repeated measures or time series, I "
+        "didn't just leave out. They're in the benchmark as cases where the right "
+        "answer is to decline.",
+    ]),
+    (6, "Architecture", 1.0, [
+        "This is how the three systems are built.",
+        "A is the direct version, with no tools. B has the tools but no procedure. "
+        "And C is the structured agent, which has to check the design first.",
+        "[point to the bottom box] The important part is down here. All three "
+        "share the same core. The same tool registry, result store, report format "
+        "and trace log. The only thing that changes between them is the control "
+        "flow, meaning the order they do things in.",
+        "I built it this way so the comparison is fair by design. There's no part "
+        "of the code where A or B gets a weaker version of something. So if the "
+        "results are different, it has to be because of the control flow.",
+    ]),
+    (7, "The decision protocol", 1.25, [
+        "This is what that control flow looks like for system C. There are seven "
+        "steps.",
+        "It reads the question, checks the design, lists the methods that design "
+        "allows, runs only the checks that could actually change the choice, "
+        "then either picks a method or declines, runs it, and verifies the report "
+        "at the end.",
+        "[point to steps 2 and 5] The two in green are the ones that matter most.",
+        "Design validation happens before anything else. So if the design has a "
+        "problem, say the rows aren't independent, those methods are removed "
+        "before any diagnostic even runs. That means a normality test that happens "
+        "to look fine can never push the system into a method the design has "
+        "already ruled out.",
+        "And step five is where it's allowed to say no.",
+        "I want to be clear about one thing. System B can run every one of these "
+        "checks. Nothing is stopping it. What B doesn't have is the rule that says "
+        "check the design first, and the permission to stop.",
+    ]),
+    (8, "The provenance contract", 1.0, [
+        "The other big design decision is about numbers. The idea is that the "
+        "model isn't allowed to write a number itself.",
+        "Every time a real calculation runs, the result is stored with a label. "
+        "The report format rejects any number typed straight into the text. So "
+        "instead, the model writes a reference to the label. At the end, every "
+        "reference is replaced with the real stored value. And if the model refers "
+        "to something that was never calculated, the whole run fails.",
+        "So instead of checking a finished report for made-up numbers, it just "
+        "isn't possible to put one in.",
+        "I do want to be honest about what this means. For system C, numerical "
+        "accuracy is guaranteed by how it's built. It's not something I measured "
+        "and discovered. So I'm not going to present it as a result. What I can "
+        "measure is how often the model tried to reference something that didn't "
+        "exist.",
+    ]),
+    (9, "The benchmark", 1.0, [
+        "To test all this, I built a benchmark of 64 cases. 52 of them have a "
+        "correct method, and 12 are cases where the right answer is to decline. "
+        "48 of the 64 are held out, which I'll explain on the next slide.",
+        "None of these were written by hand. Each case is generated from a "
+        "definition. For the synthetic ones, the correct answer is based on the "
+        "data that actually came out, not what I meant to generate. So if I asked "
+        "for normal data and it came out skewed, the label follows the skewed "
+        "data.",
+        "[point to the right] Then there are four public datasets from UCI.",
+        "The reason this matters is that most of the answer key isn't my opinion. "
+        "48 of the labels come from how the data was built. The 16 public ones I "
+        "checked against the real values, and that check found one label that was "
+        "wrong, which I fixed.",
+    ]),
+    (10, "Evaluation protocol", 1.0, [
+        "This slide is about how I kept the evaluation fair.",
+        "The biggest risk in a project like this is that you end up tuning your "
+        "system to the test without realising it. So the 48 held-out cases were "
+        "locked away. I didn't look at them while I was building. I also fixed "
+        "the instructions given to the model and recorded a fingerprint of them "
+        "before the held-out run, so they couldn't change afterwards.",
+        "Each case was run twice for each system. That's 288 runs in total, all "
+        "on the same model.",
+        "On the right are the metrics. Accuracy with confidence intervals, how "
+        "often it declined correctly, whether the report passed the provenance "
+        "check, and where each system failed.",
+        "For the statistics, I compared the systems case by case using McNemar's "
+        "test, because every case was answered by all three systems.",
+    ]),
+    (11, "Result: accuracy", 1.0, [
+        "So now the results.",
+        "This is how often each system chose a valid method. A, the direct "
+        "version, got 75 percent. B, with tools only, got 67 percent. And C, with "
+        "the procedure, got 89 percent.",
+        "C beat B by 25 percentage points. My target at the start was 10 points, "
+        "so that's well above it.",
+        "[point to the B bar] But the part I found most interesting is B. B has "
+        "tools, and it actually did worse than A, which has no tools at all.",
+        "So giving the model tools on their own didn't help. It was the procedure "
+        "that made the difference.",
+    ]),
+    (12, "Result: which differences are real", 1.25, [
+        "Now, which of these differences are actually real? That's what this "
+        "slide shows.",
+        "A solid green line with a filled dot means the difference is "
+        "statistically significant. A dashed grey line with a hollow dot means it "
+        "isn't.",
+        "C over B, the main comparison, has a p-value of 0.0018. So that one is "
+        "established.",
+        "C over A is a 12.5 point difference, but the p-value is 0.07. That's not "
+        "below 0.05, so I can't claim that C is better than A. It's pointing in "
+        "C's favour, but with 48 cases I don't have enough data to rule out "
+        "chance. So I'm reporting it as unresolved.",
+        "B over A isn't significant either.",
+        "[slow down here] I gave this its own slide because I think it's "
+        "important to be clear about where the evidence stops. If I only believed "
+        "my results when they agreed with me, they wouldn't really be results.",
+    ]),
+    (13, "Result: recognising an invalid design", 0.75, [
+        "This is the safety result, and it's the clearest difference in the whole "
+        "study.",
+        "These are the cases where every available method is invalid, so the "
+        "right answer is to decline.",
+        "C declined correctly 78 percent of the time. B declined zero times. "
+        "Every single time, B went ahead and fitted a method to data that didn't "
+        "support it.",
+        "That's exactly the failure this project was trying to prevent. So H2 is "
+        "supported.",
+    ]),
+    (14, "Result: could the report be grounded", 0.75, [
+        "This one is about whether each system could report its results without "
+        "making anything up.",
+        "System A had 43 out of 96 reports rejected. That means it either wrote a "
+        "number that no calculation produced, or it mentioned a check it never "
+        "actually ran.",
+        "You might notice B is at 100 percent here. That's because B has tools "
+        "and uses them, so its numbers are real. B's problem isn't making up "
+        "numbers. It's picking the wrong method in the first place.",
+        "The main point is that none of these made-up numbers reached a reader. "
+        "They were all caught. So H3 is supported.",
+    ]),
+    (15, "Result: where each system fails", 0.75, [
+        "This chart shows where each system actually goes wrong.",
+        "The solid part of each bar is design validation failures. That means "
+        "using a method on data where the design doesn't allow it.",
+        "B has 20 of those. C has 4.",
+        "So the procedure cut down exactly the mistake it was built to stop. Most "
+        "of what's left for C is in diagnostic reasoning, which is a different "
+        "and smaller problem.",
+    ]),
+    (16, "Result: coverage and accuracy", 0.75, [
+        "A fair question here is whether C just refuses to answer more often, and "
+        "that's why it looks better.",
+        "This chart answers that. Along the bottom is how often each system chose "
+        "to answer. Up the side is how accurate it was on the ones it did answer.",
+        "C answered 85 percent of cases and was right on 87 percent of those. A "
+        "and B answered almost everything, 95 and 98 percent, but they were right "
+        "less often.",
+        "So C gave up some coverage, but it got accuracy back for it. That's what "
+        "you'd expect if it's declining the right cases, and not just declining "
+        "at random.",
+    ]),
+    (17, "Hypotheses revisited", 0.75, [
+        "So going back to my hypotheses.",
+        "H1, selection, is supported. C beat B by 25 points.",
+        "H2, abstention, is supported. C declined correctly 78 percent of the "
+        "time, and B never did.",
+        "H3, provenance, is supported. 51 reports were rejected, and none of them "
+        "reached a reader.",
+        "The comparison between C and A is still unresolved. I left that on the "
+        "slide on purpose, because taking it off would make the findings look "
+        "stronger than they are.",
+    ]),
+    (18, "Two defects in my own measurement", 1.25, [
+        "This part isn't about the system. It's about how I measured it, and two "
+        "mistakes I found.",
+        "The first one. 51 runs ended with an error, and the obvious thing to do "
+        "is throw them out. But when I looked at them, none were technical "
+        "failures. Every one had already chosen a method before its report was "
+        "rejected, and 37 of them had chosen correctly. If I'd thrown them out, "
+        "system A would have looked 6 points better than it really is. So I kept "
+        "them.",
+        "The second one. Each case was run twice, and sometimes the two runs "
+        "disagreed. I needed a way to break those ties, and the way I first did "
+        "it changed from one session to the next. So the exact same data gave me "
+        "different p-values, anywhere from 0.016 to 0.125. That's on both sides "
+        "of 0.05. I fixed it so ties always break the same way, and added a test "
+        "so it stays fixed.",
+        "Neither of these showed up as an error. I only found them by going "
+        "through the results carefully before building any tables.",
+    ]),
+    (19, "Limitations", 1.0, [
+        "These are the limitations.",
+        "The held-out results are for one model, Claude Haiku 4.5. I'm not "
+        "claiming anything about larger models without testing them.",
+        "The sample is 48 cases with two runs each. That's enough to show the "
+        "main result, but not enough to settle C against A.",
+        "I also tried to score how good each system's written interpretation "
+        "was, with two people scoring blind. That didn't work. The two scorers "
+        "didn't agree with each other. The agreement score was minus 0.044, "
+        "which is actually worse than chance. When I looked into why, the scoring "
+        "rubric could be read in two different ways. So I rebuilt it, and I've "
+        "left that metric out rather than report a number I can't trust.",
+        "There's also no second independent reviewer for the public data labels, "
+        "and a few study designs are outside what the library covers.",
+    ]),
+    (20, "Contributions", 0.75, [
+        "So what does this project add?",
+        "First, controlled evidence that it's the procedure, and not just giving "
+        "the AI tools, that makes it choose valid methods.",
+        "Second, a benchmark that actually rewards declining, so knowing when to "
+        "stop becomes something you can measure.",
+        "And third, a way of reporting results where a number with no real "
+        "calculation behind it can't exist.",
+        "If I had to put it in one line: structure, not tools, is what makes an "
+        "AI a reliable statistician.",
+        "[pause]",
+    ]),
+    (21, "Future work", 0.5, [
+        "For future work, the first thing I'd do is run a bigger held-out set, so "
+        "I can actually settle the question of C against A.",
+        "I'd also like to test it on larger models, to see whether the procedure "
+        "still helps as the model gets more capable. And I'd run a second round "
+        "of the interpretation scoring with the new rubric, and extend the library "
+        "to cover designs like repeated measures and time series.",
+    ]),
+    (22, "Thank you", 0.5, [
+        "Everything I've shown today is online. The first link is a live explorer "
+        "where you can see every case, every answer each system gave, and every "
+        "step it took. The second is the full code and data on GitHub.",
+        "If there's time, I'm happy to open the bike sharing example and show C "
+        "declining while the other two go ahead anyway.",
+        "Thank you. I'm happy to take any questions.",
+    ]),
+]
+
+# Likely questions, answered in the same voice.
+SCRIPT_QA = [
+    ("If numbers can't be made up in system C, isn't its accuracy on numbers "
+     "automatic?",
+     "Yes, it is, and that's why I don't count it as a result. It's guaranteed by "
+     "how the system is built. What I actually measure is how often the model "
+     "tried to reference something that was never calculated."),
+    ("Why is your main comparison C against B and not C against A?",
+     "Because B has exactly the same tools and report format as C. The only "
+     "difference is the procedure. If I compared C with A, I'd be mixing up the "
+     "effect of the procedure with the effect of having tools."),
+    ("C over A isn't significant. So is the procedure really better than nothing?",
+     "I can't say that yet. The difference points in C's favour, but with 48 "
+     "cases it's not enough to rule out chance, so I've reported it as "
+     "unresolved. The main comparison, against B, is significant at 0.0018."),
+    ("How do you know your answer key is right?",
+     "48 of the 64 labels come from how the data was generated, so they're not "
+     "my judgement. For the 16 public datasets, I checked each label against the "
+     "real data, and that found one mistake, which I corrected."),
+    ("Why only two runs per case?",
+     "It came down to resources. Two runs were enough to show the main result and "
+     "to measure how consistent the systems were, but not enough to fully describe "
+     "the variation. More runs is the first thing I'd add."),
+    ("Why did you keep the runs that ended in errors?",
+     "Because none of them were technical failures. Each one had already picked a "
+     "method before its report was rejected, and 37 had picked correctly. Throwing "
+     "them out would have made system A look 6 points better than it actually is."),
+    ("Couldn't system B just do what C does?",
+     "It could, in theory. It has every tool C has. What it doesn't have is the "
+     "rule to check the design first, and permission to stop. And the results "
+     "show that without those, it doesn't do it on its own."),
+    ("What happened with the interpretation scoring?",
+     "The two scorers didn't agree, the agreement was minus 0.044, which is worse "
+     "than chance. The rubric could be read two ways. So I rebuilt it and left "
+     "the metric out, because a number from a scoring method that doesn't work "
+     "would be misleading."),
+]
+
+
+def script_styles():
+    s = {}
+    s["say"] = ParagraphStyle(
+        "say", fontName="Times-Roman", fontSize=12.5, leading=19.5,
+        textColor=INK, spaceAfter=9)
+    s["slide"] = ParagraphStyle(
+        "slide", fontName="Helvetica-Bold", fontSize=13, leading=17,
+        textColor=ACCENT, spaceBefore=4, spaceAfter=2)
+    s["time"] = ParagraphStyle(
+        "time", fontName="Helvetica", fontSize=8.5, leading=11,
+        textColor=MUTED, spaceAfter=9)
+    s["q"] = ParagraphStyle(
+        "q", fontName="Times-Bold", fontSize=12, leading=17,
+        textColor=INK, spaceBefore=8, spaceAfter=3)
+    s["a"] = ParagraphStyle(
+        "a", fontName="Times-Roman", fontSize=12, leading=18,
+        textColor=INK, leftIndent=12, spaceAfter=6)
+    return s
+
+
+SS = script_styles()
+
+
+def spoken(line: str) -> str:
+    """Render a script line: cues in grey italic, everything else as speech."""
+    line = line.replace("&", "&amp;")
+    return re.sub(r"\[([^\]]+)\]",
+                  r"<font color='#8496a6'><i>[\1]</i></font>", line)
+
+
+def presentation_script():
+    st = title_block(
+        "An LLM Agent for the Selection, Validation and Interpretation "
+        "of Statistical Methods", "Presentation Script")
+    total = sum(m for _, _, m, _ in SCRIPT)
+    st.append(P(
+        f"Twenty-two slides, about {total:.0f} minutes spoken. Words in grey "
+        "brackets are cues, not lines to say.", "caption"))
+
+    for i, (num, title, mins, lines) in enumerate(SCRIPT):
+        if i:
+            st.append(PageBreak())
+        st.append(Paragraph(f"Slide {num}  ·  {title}", SS["slide"]))
+        st.append(Paragraph(f"about {mins:g} minute{'s' if mins != 1 else ''}",
+                            SS["time"]))
+        for line in lines:
+            st.append(Paragraph(spoken(line), SS["say"]))
+
+    st.append(PageBreak())
+    st.append(Paragraph("If I get asked", SS["slide"]))
+    st.append(Paragraph("the questions most likely to come up", SS["time"]))
+    for q, a in SCRIPT_QA:
+        st.append(KeepTogether([Paragraph(q, SS["q"]),
+                                Paragraph(a, SS["a"])]))
+    return st
+
+
 # ---------------------------------------------------------------- build ---
 
 def main() -> int:
@@ -1294,7 +1705,9 @@ def main() -> int:
             ("AI_Statistician_Final_Report.pdf",
              "AI Statistician — Final Report", final_report),
             ("AI_Statistician_Presenting_Notes.pdf",
-             "AI Statistician — Presenting Notes", presenting_points)]
+             "AI Statistician — Presenting Notes", presenting_points),
+            ("AI_Statistician_Presentation_Script.pdf",
+             "AI Statistician — Presentation Script", presentation_script)]
     for filename, running, builder in jobs:
         path = DOCS / filename
         doc = make_doc(path, running)
