@@ -129,7 +129,9 @@ def fig_accuracy(live: pd.DataFrame, offline: pd.DataFrame, *,
         # adjacent panel's axis text -- caught by looking at the render, which
         # no palette check would have found.
         for y, v in zip(ys, vals):
-            ax.text(v - 0.02, y, f"{v:.0%}", va="center", ha="right",
+            # At the bar's root, not its end: the end shares a height with
+            # the interval, so the whisker ran through every value label.
+            ax.text(0.02, y, f"{v:.0%}", va="center", ha="left",
                     fontsize=9.5, color="#ffffff", fontweight="600", zorder=5)
 
         ax.set_yticks(ys); ax.set_yticklabels(labs)
@@ -166,22 +168,30 @@ def fig_risk_coverage(df: pd.DataFrame, name: str, out: str = "fig2_risk_coverag
         acc = float(answered.selection_correct.mean()) if len(answered) else float("nan")
         points.append((s, cov, acc))
 
-    # Systems that answer everything pile up on the right edge, so their labels
-    # go left and are staggered vertically; anything with headroom labels below.
-    at_edge = sorted([p for p in points if p[1] > 0.95], key=lambda p: -p[2])
+    # Labels sit in one column left of every point, each at its own point's
+    # height, joined to it by a leader in the system's colour.  The previous
+    # scheme chose an offset by rule -- up for one class of point, down for
+    # another -- and on the held-out run A fell just under the rule's 95%
+    # threshold while B fell over it.  A's label was pushed down toward B and
+    # B's up toward A: each label ended up beside the other system's dot, and
+    # two of them overlapped.  Identity must not depend on proximity.
     for s, cov, acc in points:
         ax.scatter([cov], [acc], s=190, color=SERIES[s], zorder=4,
                    edgecolors=SURFACE, linewidths=2)
-        text = f"{LABEL[s]}\n{acc:.0%} at {cov:.0%} coverage"
-        if (s, cov, acc) in at_edge:
-            rank = at_edge.index((s, cov, acc))
-            ax.annotate(text, (cov, acc), textcoords="offset points",
-                        xytext=(-18, 22 if rank == 0 else -30), ha="right",
-                        fontsize=8.5, color=INK, linespacing=1.5)
-        else:
-            ax.annotate(text, (cov, acc), textcoords="offset points",
-                        xytext=(0, -34), ha="center",
-                        fontsize=8.5, color=INK, linespacing=1.5)
+
+    column_x = min(p[1] for p in points) - 0.07
+    placed = []
+    for s, cov, acc in sorted(points, key=lambda p: -p[2]):
+        y = acc
+        if placed and placed[-1] - y < 0.085:       # keep label rows apart
+            y = placed[-1] - 0.085
+        placed.append(y)
+        ax.annotate(f"{LABEL[s]}\n{acc:.0%} at {cov:.0%} coverage",
+                    xy=(cov, acc), xytext=(column_x, y), textcoords="data",
+                    ha="right", va="center", fontsize=8.5, color=INK,
+                    linespacing=1.45, zorder=5,
+                    arrowprops=dict(arrowstyle="-", color=SERIES[s], lw=1.3,
+                                    shrinkA=5, shrinkB=8))
 
     ax.set_xlabel("Coverage — share of cases the system chose to answer")
     ax.set_ylabel("Selective accuracy — accuracy among those")

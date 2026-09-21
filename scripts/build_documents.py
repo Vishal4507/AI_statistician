@@ -901,6 +901,388 @@ def final_report():
     return st
 
 
+# ===================================================== PRESENTING POINTS ===
+
+# (slide, minutes, title, purpose, what to say, the line to land, transition)
+SLIDES = [
+    (1, 0.5, "Title",
+     "Establish who you are and the single question.",
+     ["Introduce yourself and the project title.",
+      "Read the question on the slide: does an explicit decision protocol make "
+      "an LLM choose valid statistical methods more reliably than tool access "
+      "alone?"],
+     "Keep this short. The next slide does the real work.",
+     "“Let me start with why this question matters.”"),
+    (2, 2.0, "Problem statement",
+     "The most important slide. Everything after it answers it.",
+     ["State the problem in one breath: LLM analyses are fluent, arithmetically "
+      "correct, and frequently invalid.",
+      "Explain why: validity depends on how the data was collected — "
+      "independence, pairing, time order, clustering — and those facts are not "
+      "in the data file.",
+      "Walk the three consequences left to right: an invalid method with correct "
+      "arithmetic; a fabricated number that reads like a result; and no mechanism "
+      "that obliges the model to decline."],
+     "“The data itself does not contain the facts that decide whether the method "
+     "is valid.”",
+     "“Here is what that looks like on real data.”"),
+    (3, 1.5, "Motivating case",
+     "Make the abstract problem concrete with one dataset.",
+     ["Seoul Bike Sharing: 8,760 rows, one per hour for a year.",
+      "The question — does temperature relate to demand — looks like a textbook "
+      "correlation or Poisson regression.",
+      "Both assume independent observations. Adjacent hours share weather, "
+      "commuting cycles and daylight, so they are not independent.",
+      "Nothing in the file says so. The design card supplies that fact."],
+     "“The table looked perfect, and the correct answer was to decline.”",
+     "“So the question I tested is this.”"),
+    (4, 1.0, "Research question and hypotheses",
+     "Show exactly what is being tested and against what.",
+     ["Read the research question.",
+      "H1 selection, H2 abstention, H3 provenance.",
+      "Stress that H1 compares C with B, not with A. B has the same tools and "
+      "the same report format, so B is the honest control."],
+     "“If C beats B, it is the procedure that won — not better tools.”",
+     "“Before the results, the design decisions that make this testable.”"),
+    (5, 1.0, "Scope and design decisions",
+     "Justify the closed library and the absence of code execution.",
+     ["Fourteen methods across five task families, plus abstention.",
+      "Closed so it is scorable — an open library turns method choice into essay "
+      "grading.",
+      "No general code-execution tool: it would let the model bypass the policy "
+      "and make the three systems incomparable.",
+      "Unsupported designs are not ignored; they are tested as abstention cases."],
+     "“Declining is a decision, not a failure.”",
+     "“Here is how the three systems are built.”"),
+    (6, 1.0, "Architecture",
+     "Pre-empt the fairness question.",
+     ["Three drivers, one shared core: tool registry, result store, report "
+      "schema, trace log.",
+      "Only the control flow differs between A, B and C."],
+     "“Baseline fairness is provable from the code layout, not asserted.”",
+     "“The difference is in how C orders its work.”"),
+    (7, 1.25, "The decision protocol",
+     "Show the ordering that is the whole intervention.",
+     ["Seven steps: parse, validate design, enumerate, diagnose, select or "
+      "abstain, execute, verify.",
+      "Point at steps 2 and 5. Design validation gates everything downstream, so "
+      "a clean normality test can never talk the system into a method the design "
+      "rules out.",
+      "B can run every one of these checks too. What it lacks is the "
+      "requirement to validate first, and the permission to stop."],
+     "“The intervention is the order, not the tools.”",
+     "“One more design decision, about numbers.”"),
+    (8, 1.0, "The provenance contract",
+     "Explain how fabrication is prevented rather than detected.",
+     ["Every tool result is registered under a key.",
+      "The report format rejects raw numbers in prose.",
+      "The model writes a reference; references are substituted at the end; an "
+      "unknown reference fails the run.",
+      "Say the caveat yourself: for C this makes fidelity a guarantee by design, "
+      "not an empirical finding. The empirical measure is the rejection rate."],
+     "“The model cannot write a number.”",
+     "“Now the test itself.”"),
+    (9, 1.0, "The benchmark",
+     "Establish that the answer key is not opinion.",
+     ["64 cases: 52 supported, 12 where declining is correct; 48 held out.",
+      "Gold labels derive from the realised sample: design facts from the "
+      "generator, distributional facts from the data actually drawn.",
+      "Four public UCI datasets. The public labels were audited against their "
+      "real values, which found and fixed one mislabel."],
+     "“48 of 64 labels are derived, not judged.”",
+     "“And the evaluation was designed to rule out tuning to the test.”"),
+    (10, 1.0, "Evaluation protocol",
+     "Show the controls against the most serious threat: leakage.",
+     ["Held-out split frozen and never examined during development.",
+      "Prompts fingerprinted by hash before the held-out run.",
+      "Two repetitions per case, 288 graded runs, pinned model.",
+      "Inference: per-case majority, then McNemar's exact test with a bootstrap "
+      "interval — paired, because each case is answered by all three systems."],
+     "“Without the frozen split, a good result would only mean I had tuned to "
+     "the answers.”",
+     "“So, the results.”"),
+    (11, 1.0, "Result — accuracy",
+     "Deliver the headline.",
+     ["A 75%, B 67%, C 89%, with 95% intervals.",
+      "C over B is +25 points against a +10 target.",
+      "Point at B: tools without a procedure scored below no tools at all."],
+     "“Tools did not rescue the model. The ordering did.”",
+     "“Which of these differences are real?”"),
+    (12, 1.25, "Result — significance",
+     "Separate what is established from what is not. Do not rush this.",
+     ["Solid and filled means significant; dashed and hollow means not.",
+      "C over B: p = 0.0018. Established.",
+      "C over A: +12.5 points, p = 0.0703. Not established — I report it as "
+      "unresolved.",
+      "B over A: not established either."],
+     "“A result I only believe when it agrees with me is not a result.”",
+     "“The sharpest separation is on the dangerous cases.”"),
+    (13, 0.75, "Result — abstention",
+     "The safety result.",
+     ["On the design-hazard runs, C declined correctly 78% of the time.",
+      "The tool-only baseline declined zero times — it fitted a real method to "
+      "every invalid design."],
+     "“H2 is supported.”",
+     "“Then, could each system explain its result honestly?”"),
+    (14, 0.75, "Result — grounding",
+     "Show the second axis: reporting without invention.",
+     ["The direct baseline had 43 of 96 reports rejected — a number no tool "
+      "produced, or a check it never ran.",
+      "B scores 100% here because it has tools and uses them. Its failure is "
+      "choosing the wrong method, not inventing numbers.",
+      "No fabricated number reached a reader in any system."],
+     "“H3 is supported.”",
+     "“Here is where each system actually goes wrong.”"),
+    (15, 0.75, "Result — failure stage",
+     "Show the mechanism behind every other result.",
+     ["Total failures: A 24, B 32, C 11.",
+      "Design-validation failures: B 20, C 4."],
+     "“The protocol removed exactly the failure it was built to remove.”",
+     "“It did give something up — coverage.”"),
+    (16, 0.75, "Result — risk and coverage",
+     "Answer the objection that C just refuses more.",
+     ["C answered 85% of cases and was right on 87% of those.",
+      "A and B answered 95% and 98%, and were right less often.",
+      "Lower coverage came with higher accuracy on what was answered — the "
+      "signature of declining the right cases, not declining at random."],
+     "“It declines when it should.”",
+     "“Pulling the findings together.”"),
+    (17, 0.75, "Hypotheses revisited",
+     "Summarise the findings against the questions asked.",
+     ["H1, H2 and H3 supported.",
+      "C over A unresolved — keep that row on the slide and say it."],
+     "“Three supported, one open.”",
+     "“Two things went wrong along the way, and they matter.”"),
+    (18, 1.25, "Measurement rigour",
+     "Demonstrate that you checked your own instrument.",
+     ["Defect one: 51 runs ended in errors, but each had already chosen a "
+      "method, and 37 had chosen correctly. Discarding them would have made the "
+      "direct baseline look 6 points better than it is.",
+      "Defect two: with two repetitions a tie had no majority, and the tie-break "
+      "varied between sessions. The same data gave p-values from 0.016 to "
+      "0.125 — either side of 0.05. Fixed and enforced by a test.",
+      "Neither raised an error. Both are documented as formal deviations."],
+     "“The system worked. The way I was measuring it did not, and nothing "
+     "complained.”",
+     "“So here is what the evidence does not support.”"),
+    (19, 1.0, "Limitations",
+     "State the limits calmly and without apology.",
+     ["Held-out claims are scoped to Claude Haiku 4.5.",
+      "48 cases and two repetitions resolve the main comparison but not C over "
+      "A.",
+      "The interpretation score is withheld: the blinded round failed its "
+      "reliability check, kappa −0.044.",
+      "No independent second reviewer for the public labels; several design "
+      "families are out of scope."],
+     "“Each limit is known, bounded and disclosed.”",
+     "“What the project contributes.”"),
+    (20, 0.75, "Contributions",
+     "Close the argument.",
+     ["Controlled evidence that the protocol, not tool access, drives valid "
+      "selection.",
+      "A benchmark that scores declining.",
+      "A report format in which an unsourced number cannot exist."],
+     "“Structure, not tooling, makes an LLM a reliable statistician.” — then "
+     "pause.",
+     "“Where this goes next.”"),
+    (21, 0.5, "Future work",
+     "Show the obvious next experiments.",
+     ["A larger held-out set to resolve C over A; frontier models; a second "
+      "blinded scoring round; a wider method library."],
+     "“The design already tells me how much larger the sample needs to be.”",
+     "“You can see all of it running.”"),
+    (22, 0.5, "Live artefacts and questions",
+     "Invite scrutiny.",
+     ["Point to the live explorer and the repository.",
+      "If there is time, open the Seoul bike case and show C declining while A "
+      "and B both fit a model."],
+     "“Thank you — I'm happy to take questions.”",
+     ""),
+]
+
+QA = [
+    ("If fabrication is impossible in System C, isn't its perfect fidelity a "
+     "tautology?",
+     "Yes, and that is how it is reported. For C, fidelity is a property of the "
+     "design, not a measured finding. The empirical measure is how often the model "
+     "reached for a reference that did not exist, and that rate is reported."),
+    ("Why is the main comparison C against B rather than C against A?",
+     "B holds exactly the same tools and the same report format as C; only the "
+     "control flow differs. Comparing C with B isolates the protocol. Comparing C "
+     "with A would mix the protocol with tool access."),
+    ("C over A isn't significant. Is the protocol actually better than no tools?",
+     "The direction favours C — the discordant cases split seven to one — but at 48 "
+     "cases that is not enough to rule out chance, so I report it as unresolved. "
+     "The primary comparison, against B, is significant at p = 0.0018."),
+    ("How do you know your gold labels are correct?",
+     "48 of 64 labels are construction-derived: design facts come from the "
+     "generator and distributional facts from the sample actually drawn, so they "
+     "are not judgements. The 16 public-data labels were audited against their "
+     "realised values, which caught and fixed one mislabel."),
+    ("Why only two repetitions?",
+     "It was a resource constraint. Two repetitions are enough to establish the "
+     "primary comparison and to measure run-to-run stability — 25 of 144 "
+     "system-case cells disagreed between runs — but not to characterise the full "
+     "distribution. More repetitions are the first item of future work."),
+    ("Why Claude Haiku 4.5 and not a frontier model?",
+     "Every held-out claim is scoped to Haiku 4.5, and I do not generalise beyond "
+     "it. The runner is model-agnostic and the evaluation is frozen, so re-running "
+     "on a larger model is a direct next step."),
+    ("Why didn't you set temperature to zero for determinism?",
+     "The temperature parameter has been removed on current models and returns an "
+     "error if sent. Determinism is controlled instead by a pinned model, a fixed "
+     "effort level and a frozen prompt hash — and residual variance is measured "
+     "across repetitions rather than assumed away."),
+    ("The expert policy scores 100%. Doesn't that prove the system works?",
+     "No — that score is circular, because the expert policy is what derived the "
+     "gold labels. It validates the harness, not the method. The informative row "
+     "is the naive policy inside the same state machine, which scores far lower "
+     "and never abstains — showing the architecture alone does not produce the "
+     "gain."),
+    ("Why did you keep errored runs in the accuracy figure?",
+     "Because none of the 51 errors were infrastructure. Each run had already "
+     "chosen a method before its report failed the provenance check, and 37 had "
+     "chosen correctly. Discarding them would raise the direct baseline from 75.0% "
+     "to 81.1% by hiding its worst behaviour. Runs that never reached a decision "
+     "are excluded."),
+    ("Couldn't System B simply do what System C does?",
+     "It has every tool C has, so nothing stops it. What it lacks is the "
+     "requirement to validate the design before anything else, and the explicit "
+     "permission to decline. The results show that without those, it does not "
+     "discover them."),
+    ("What happened with the interpretation scoring?",
+     "The blinded round failed its reliability check — inter-rater kappa of "
+     "−0.044, worse than chance. The rubric admitted two defensible readings of its "
+     "middle grade, so it was rebuilt. I withheld the metric rather than report a "
+     "number from an instrument that demonstrably does not measure anything."),
+    ("Why McNemar's test?",
+     "Each case is answered by every system, so outcomes are paired and binary. "
+     "McNemar's exact test uses only the discordant cases, which is right for paired "
+     "binary data with small discordant counts. The bootstrap gives an interval on "
+     "the difference itself."),
+    ("What is the practical application?",
+     "Anywhere an LLM analyses data for people who cannot audit the method — "
+     "business analysts, clinicians, policy teams. The risk is not bad arithmetic; "
+     "it is a confident answer from a method the data does not support."),
+    ("What would you do differently?",
+     "A larger held-out set and more repetitions to resolve C over A, and an "
+     "independent second reviewer for the public-data labels from the start."),
+]
+
+NUMBERS = [
+    ["Selection accuracy", "A 75.0%  ·  B 66.7%  ·  C 88.5%"],
+    ["C over B", "+25.0 points  ·  p = 0.0018  ·  95% CI [+12.5, +39.6]"],
+    ["C over A", "+12.5 points  ·  p = 0.0703  ·  not established"],
+    ["Declined correctly", "A 28%  ·  B 0%  ·  C 78%  (design-hazard runs)"],
+    ["Reports rejected", "A 43 of 96  ·  B 0  ·  C 8"],
+    ["Design-validation failures", "B 20  ·  C 4"],
+    ["Selective accuracy", "C 87% at 85% coverage"],
+    ["Benchmark", "64 cases  ·  52 supported  ·  12 abstain  ·  48 held out"],
+    ["Runs", "288 graded, 2 repetitions, Claude Haiku 4.5"],
+    ["Reliability failure", "inter-rater kappa −0.044"],
+]
+
+
+def presenting_points():
+    st = title_block(
+        "An LLM Agent for the Selection, Validation and Interpretation "
+        "of Statistical Methods", "Presenting Notes")
+
+    st.append(P("1. Before you start", "h1"))
+    total = sum(s[1] for s in SLIDES)
+    st.append(P(
+        f"Twenty-two slides, planned at about {total:.0f} minutes. If time is "
+        "short, compress slides 13 to 16 — each is a single figure with one "
+        "sentence to land — and keep slides 2, 12 and 18 at full length. Those "
+        "three carry the problem, the honest reading of the results, and the "
+        "evidence that the measurement itself was checked."))
+    st.append(P(
+        "What a professor listens for is not a large number. It is whether you "
+        "know exactly what your evidence supports, and whether you say where it "
+        "stops before being asked.", "note"))
+
+    st.append(P("2. The problem statement, at three lengths", "h1"))
+    st.append(P("In one sentence", "h2"))
+    st.append(P(
+        "“Language models produce statistical analyses that are fluent and "
+        "arithmetically correct but often invalid, because validity depends on "
+        "how the data was collected — which the data itself does not contain.”"))
+    st.append(P("In thirty seconds", "h2"))
+    st.append(P(
+        "“Ask an AI to analyse a dataset and it will always give you an answer. "
+        "It reads well and the arithmetic is right. But whether the method is "
+        "valid depends on facts about the study design — are the observations "
+        "independent, paired, ordered in time — and none of that is visible in "
+        "the spreadsheet. So the model can apply a method the data does not "
+        "support, invent a statistic, or answer when it should decline. This "
+        "project tests whether giving the model an explicit decision procedure "
+        "fixes that.”"))
+    st.append(P("In two minutes", "h2"))
+    st += bullets([
+        "Open with the observation: an LLM always answers, and its answers are "
+        "fluent and arithmetically correct.",
+        "Name the gap: validity is decided by design facts — independence, "
+        "pairing, temporal order, clustering — that live outside the data file.",
+        "Give the three consequences: an invalid method with correct numbers; a "
+        "fabricated statistic that reads as a result; no obligation to decline.",
+        "Say why it matters: the people most likely to rely on an AI's analysis "
+        "are the people least able to audit its method.",
+        "State the question: does an explicit protocol make the model choose "
+        "valid methods more reliably than tool access alone?",
+    ])
+
+    st.append(PageBreak())
+    st.append(P("3. Slide by slide", "h1"))
+    for num, mins, name, purpose, say, land, nxt in SLIDES:
+        head = f"Slide {num}  ·  {name}"
+        block = [P(head, "h2"),
+                 P(f"<i>{purpose}</i>  <font color='#8496a6'>"
+                   f"(about {mins:g} min)</font>", "body")]
+        block += bullets(say)
+        block.append(P(f"<b>Land this:</b> {land}", "body"))
+        if nxt:
+            block.append(P(f"<font color='#5c6a78'>Transition: {nxt}</font>",
+                           "body"))
+        st.append(KeepTogether(block))
+
+    st.append(PageBreak())
+    st.append(P("4. Numbers to know without looking", "h1"))
+    st.append(P(
+        "Every figure below matches the recorded held-out run. Quote them "
+        "exactly; rounding a p-value in speech is where a sharp question starts."))
+    st.append(table([["Measure", "Value"]] + NUMBERS,
+                    widths=[5.0 * cm, 11.6 * cm]))
+
+    st.append(P("5. Questions to expect", "h1"))
+    st.append(P(
+        "Answer the question asked, then stop. Where a limit is involved, state it "
+        "plainly — defensiveness reads worse than the limit itself."))
+    for q, a in QA:
+        st.append(KeepTogether([P(f"<b>Q.</b> {q}", "body"),
+                                P(f"<b>A.</b> {a}", "bullet"),
+                                Spacer(1, 3)]))
+
+    st.append(P("6. Phrases to avoid", "h1"))
+    st.append(table([
+        ["Instead of", "Say"],
+        ["“The system proves LLMs can be trusted.”",
+         "“On this model and benchmark, the protocol beat tool access alone by 25 "
+         "points.”"],
+        ["“It is better than a plain LLM.”",
+         "“It leads the plain LLM by 12.5 points, but that difference is not "
+         "significant at this sample size.”"],
+        ["“Numerical fidelity is 100%.”",
+         "“Fabrication is prevented by design; the rejection rate is the "
+         "empirical measure.”"],
+        ["“It never makes mistakes.”",
+         "“It fails least at design validation, which is the failure it was "
+         "built to prevent.”"],
+        ["“The results show it works on all models.”",
+         "“The held-out result is scoped to Claude Haiku 4.5.”"],
+    ], widths=[6.6 * cm, 10.0 * cm]))
+    return st
+
+
 # ---------------------------------------------------------------- build ---
 
 def main() -> int:
@@ -910,7 +1292,9 @@ def main() -> int:
             ("AI_Statistician_Interim_Report.pdf",
              "AI Statistician — Interim Report", interim),
             ("AI_Statistician_Final_Report.pdf",
-             "AI Statistician — Final Report", final_report)]
+             "AI Statistician — Final Report", final_report),
+            ("AI_Statistician_Presenting_Notes.pdf",
+             "AI Statistician — Presenting Notes", presenting_points)]
     for filename, running, builder in jobs:
         path = DOCS / filename
         doc = make_doc(path, running)

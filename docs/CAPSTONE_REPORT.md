@@ -1,6 +1,6 @@
 # AI Statistician — capstone report
 
-*Generated 2026-09-11 from `results/*.jsonl`.
+*Generated 2026-09-21 from `results/*.jsonl`.
 Regenerate with `python scripts/write_capstone.py`.*
 
 ---
